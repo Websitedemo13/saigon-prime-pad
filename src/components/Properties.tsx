@@ -1,60 +1,13 @@
-import { MapPin, Bed, Bath, Square, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { MapPin, Bed, Bath, Square, TrendingUp, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import luxuryApartment from "@/assets/luxury-apartment.jpg";
-
-const properties = [
-  {
-    id: 1,
-    title: "Căn hộ cao cấp Vinhomes Central Park",
-    location: "Quận Bình Thạnh, TP.HCM",
-    price: "5.2 tỷ",
-    pricePerM2: "85 triệu/m²",
-    area: "75m²",
-    bedrooms: 2,
-    bathrooms: 2,
-    type: "Căn hộ",
-    status: "Sẵn sàng bàn giao",
-    roi: "+12%/năm",
-    image: luxuryApartment,
-    features: ["View sông", "Nội thất cao cấp", "Bể bơi vô cực"]
-  },
-  {
-    id: 2,
-    title: "Penthouse Landmark 81 Skyview",
-    location: "Quận Bình Thạnh, TP.HCM", 
-    price: "25.8 tỷ",
-    pricePerM2: "180 triệu/m²",
-    area: "145m²",
-    bedrooms: 3,
-    bathrooms: 3,
-    type: "Penthouse",
-    status: "Độc quyền",
-    roi: "+15%/năm",
-    image: luxuryApartment,
-    features: ["Tầng cao nhất", "Sân vườn riêng", "View 360°"]
-  },
-  {
-    id: 3,
-    title: "Shophouse The Sun Avenue",
-    location: "Quận 2, TP.HCM",
-    price: "12.5 tỷ",
-    pricePerM2: "120 triệu/m²",
-    area: "105m²",
-    bedrooms: 4,
-    bathrooms: 3,
-    type: "Shophouse",
-    status: "Kinh doanh tốt",
-    roi: "+18%/năm",
-    image: luxuryApartment,
-    features: ["Mặt tiền đường", "Kinh doanh sẵn", "Vị trí đắc địa"]
-  }
-];
+import { properties } from "@/data/properties";
 
 export default function Properties() {
   return (
-    <section className="py-20 bg-gradient-to-br from-background to-muted/30">
+    <section id="properties" className="py-20 bg-gradient-to-br from-background to-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -70,27 +23,36 @@ export default function Properties() {
           {properties.map((property, index) => (
             <Card 
               key={property.id} 
-              className="card-hover border-0 bg-gradient-card shadow-card overflow-hidden animate-scale-in"
+              className="card-hover border-0 bg-gradient-card shadow-card overflow-hidden animate-scale-in group"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="relative">
-                <img 
-                  src={property.image} 
-                  alt={property.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-gradient-primary text-primary-foreground">
-                    {property.status}
-                  </Badge>
+              <Link to={`/du-an/${property.slug}`} className="block">
+                <div className="relative overflow-hidden">
+                  <img 
+                    src={property.image} 
+                    alt={property.title}
+                    className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-gradient-primary text-primary-foreground shadow-lg">
+                      {property.status}
+                    </Badge>
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <Badge variant="secondary" className="bg-white/90 text-foreground font-bold shadow-lg">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      {property.roi}
+                    </Badge>
+                  </div>
+                  <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                    <div className="bg-primary text-primary-foreground rounded-full p-2">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-white/90 text-foreground font-bold">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    {property.roi}
-                  </Badge>
-                </div>
-              </div>
+              </Link>
 
               <CardContent className="p-6">
                 <div className="mb-3">
@@ -99,12 +61,14 @@ export default function Properties() {
                   </Badge>
                 </div>
 
-                <h3 className="text-xl font-bold mb-2 line-clamp-2">
-                  {property.title}
-                </h3>
+                <Link to={`/du-an/${property.slug}`}>
+                  <h3 className="text-xl font-bold mb-2 line-clamp-2 hover:text-primary transition-colors">
+                    {property.title}
+                  </h3>
+                </Link>
 
                 <div className="flex items-center text-muted-foreground mb-4">
-                  <MapPin className="w-4 h-4 mr-1" />
+                  <MapPin className="w-4 h-4 mr-1 shrink-0" />
                   <span className="text-sm">{property.location}</span>
                 </div>
 
@@ -143,11 +107,11 @@ export default function Properties() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm">
-                    Xem chi tiết
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/du-an/${property.slug}`}>Xem chi tiết</Link>
                   </Button>
-                  <Button className="btn-primary" size="sm">
-                    Liên hệ
+                  <Button className="btn-primary" size="sm" asChild>
+                    <a href="#contact">Liên hệ</a>
                   </Button>
                 </div>
               </CardContent>
