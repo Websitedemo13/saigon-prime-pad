@@ -120,8 +120,8 @@ export default function Properties() {
         </div>
 
         <div className="text-center animate-fade-in">
-          <Button className="btn-secondary text-lg px-8 py-4">
-            Xem Tất Cả Dự Án
+          <Button className="btn-secondary text-lg px-8 py-4" asChild>
+            <Link to="/du-an">Xem Tất Cả Dự Án</Link>
           </Button>
         </div>
       </div>
