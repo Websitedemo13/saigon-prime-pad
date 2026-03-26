@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Properties from "@/components/Properties";
@@ -9,11 +10,12 @@ import BackToTop from "@/components/BackToTop";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <Hero />
-      <About />  
+      <Header />
+      <div id="hero"><Hero /></div>
+      <div id="about"><About /></div>
       <Properties />
       <Reviews />
-      <Contact />
+      <div id="contact"><Contact /></div>
       <Footer />
       <BackToTop />
     </div>
