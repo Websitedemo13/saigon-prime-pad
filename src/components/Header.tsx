@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Phone, ChevronDown } from "lucide-react";
+import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const navLinks = [
   { label: "Trang chủ", href: "#hero" },
   { label: "Giới thiệu", href: "#about" },
   { label: "Dự án", href: "#properties" },
+  { label: "Bản đồ", href: "#map" },
   { label: "Đánh giá", href: "#reviews" },
   { label: "Liên hệ", href: "#contact" },
 ];
@@ -14,6 +16,12 @@ const navLinks = [
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { data: logoContent } = useSiteContent("logo");
+  const logo = logoContent?.content as Record<string, any> | null;
+
+  const logoText = logo?.text || "VSM";
+  const logoSubtitle = logo?.subtitle || "Real Estate";
+  const logoImage = logo?.imageUrl || "";
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 50);
@@ -30,20 +38,22 @@ export default function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled
-          ? "bg-secondary/95 backdrop-blur-xl shadow-lg py-3"
-          : "bg-transparent py-5"
+        isScrolled ? "bg-secondary/95 backdrop-blur-xl shadow-lg py-3" : "bg-transparent py-5"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground text-lg tracking-tight group-hover:scale-110 transition-transform">
-            VSM
-          </div>
+          {logoImage ? (
+            <img src={logoImage} alt={logoText} className="h-10 object-contain group-hover:scale-110 transition-transform" />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground text-lg tracking-tight group-hover:scale-110 transition-transform">
+              {logoText}
+            </div>
+          )}
           <div className="hidden sm:block">
             <span className="text-xl font-bold text-white tracking-tight">
-              VSM <span className="text-gradient">Real Estate</span>
+              {logoText} <span className="text-gradient">{logoSubtitle}</span>
             </span>
           </div>
         </Link>
@@ -64,26 +74,14 @@ export default function Header() {
 
         {/* CTA */}
         <div className="hidden lg:flex items-center gap-3">
-          <a
-            href="tel:0123456789"
-            className="flex items-center gap-2 text-primary-light font-semibold text-sm hover:text-white transition-colors"
-          >
-            <Phone className="w-4 h-4" />
-            0123.456.789
+          <a href="tel:0123456789" className="flex items-center gap-2 text-primary-light font-semibold text-sm hover:text-white transition-colors">
+            <Phone className="w-4 h-4" />0123.456.789
           </a>
-          <Button
-            className="btn-primary text-sm"
-            onClick={() => scrollTo("#contact")}
-          >
-            Tư Vấn Ngay
-          </Button>
+          <Button className="btn-primary text-sm" onClick={() => scrollTo("#contact")}>Tư Vấn Ngay</Button>
         </div>
 
         {/* Mobile Toggle */}
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="lg:hidden text-white p-2"
-        >
+        <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="lg:hidden text-white p-2">
           {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
@@ -93,19 +91,12 @@ export default function Header() {
         <div className="lg:hidden bg-secondary/98 backdrop-blur-xl border-t border-white/10 animate-fade-in">
           <div className="container mx-auto px-4 py-6 flex flex-col gap-2">
             {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => scrollTo(link.href)}
-                className="text-left px-4 py-3 text-white/90 hover:text-white hover:bg-white/5 rounded-lg transition-colors font-medium"
-              >
+              <button key={link.href} onClick={() => scrollTo(link.href)} className="text-left px-4 py-3 text-white/90 hover:text-white hover:bg-white/5 rounded-lg transition-colors font-medium">
                 {link.label}
               </button>
             ))}
             <div className="border-t border-white/10 mt-2 pt-4">
-              <Button
-                className="btn-primary w-full"
-                onClick={() => scrollTo("#contact")}
-              >
+              <Button className="btn-primary w-full" onClick={() => scrollTo("#contact")}>
                 <Phone className="w-4 h-4 mr-2" /> Tư Vấn Ngay — 0123.456.789
               </Button>
             </div>

@@ -3,6 +3,7 @@ import { Search, MapPin, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import heroImage from "@/assets/hero-hcm.jpg";
 
 const districts = [
@@ -19,16 +20,40 @@ export default function Hero() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const { data: heroContent } = useSiteContent("hero");
+
+  const content = heroContent?.content as Record<string, any> | null;
+  const bgImage = content?.backgroundImage || heroImage;
+  const videoUrl = content?.videoUrl || "";
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary/90 via-secondary/70 to-primary/80" />
-      </div>
+      {/* Background Video or Image */}
+      {videoUrl ? (
+        <div className="absolute inset-0">
+          {videoUrl.includes("youtube") ? (
+            <iframe
+              src={videoUrl.replace("watch?v=", "embed/") + "?autoplay=1&mute=1&loop=1&controls=0&showinfo=0"}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: "scale(1.2)" }}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          ) : (
+            <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+              <source src={videoUrl} type="video/mp4" />
+            </video>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary/90 via-secondary/70 to-primary/80" />
+        </div>
+      ) : (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary/90 via-secondary/70 to-primary/80" />
+        </div>
+      )}
 
       {/* Floating Elements */}
       <div className="absolute top-20 left-10 w-20 h-20 bg-primary/20 rounded-full animate-float" />
@@ -38,14 +63,24 @@ export default function Hero() {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Bất Động Sản
-            <span className="text-gradient block">Hồ Chí Minh</span>
-            Cao Cấp
+            {content?.title ? (
+              content.title
+            ) : (
+              <>
+                Bất Động Sản
+                <span className="text-gradient block">Hồ Chí Minh</span>
+                Cao Cấp
+              </>
+            )}
           </h1>
           
           <p className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed">
-            Khám phá những cơ hội đầu tư hấp dẫn nhất tại trung tâm kinh tế Việt Nam. 
-            <br />VSM Real Estate - Đối tác tin cậy của bạn.
+            {content?.subtitle || (
+              <>
+                Khám phá những cơ hội đầu tư hấp dẫn nhất tại trung tâm kinh tế Việt Nam.
+                <br />VSM Real Estate - Đối tác tin cậy của bạn.
+              </>
+            )}
           </p>
 
           {/* Search Form */}
@@ -68,9 +103,7 @@ export default function Hero() {
                 </SelectTrigger>
                 <SelectContent>
                   {districts.map((district) => (
-                    <SelectItem key={district} value={district}>
-                      {district}
-                    </SelectItem>
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -81,9 +114,7 @@ export default function Hero() {
                 </SelectTrigger>
                 <SelectContent>
                   {propertyTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -97,12 +128,8 @@ export default function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 animate-slide-in-right" style={{ animationDelay: "0.6s" }}>
-            <Button className="btn-primary text-lg px-8 py-4">
-              Tư Vấn Miễn Phí
-            </Button>
-            <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary">
-              Xem Dự Án
-            </Button>
+            <Button className="btn-primary text-lg px-8 py-4">Tư Vấn Miễn Phí</Button>
+            <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary">Xem Dự Án</Button>
           </div>
         </div>
       </div>
