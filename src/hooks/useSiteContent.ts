@@ -10,7 +10,7 @@ export function useSiteContent(sectionKey: string) {
         .from("site_content")
         .select("*")
         .eq("section_key", sectionKey)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
