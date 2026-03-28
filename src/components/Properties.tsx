@@ -3,9 +3,23 @@ import { MapPin, Bed, Bath, Square, TrendingUp, ArrowRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { properties } from "@/data/properties";
+import { useProperties } from "@/hooks/useProperties";
 
 export default function Properties() {
+  const { data: properties, isLoading } = useProperties();
+
+  if (isLoading) {
+    return (
+      <section id="properties" className="py-20 bg-gradient-to-br from-background to-muted/30">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+        </div>
+      </section>
+    );
+  }
+
+  if (!properties?.length) return null;
+
   return (
     <section id="properties" className="py-20 bg-gradient-to-br from-background to-muted/30">
       <div className="container mx-auto px-4">
@@ -29,7 +43,7 @@ export default function Properties() {
               <Link to={`/du-an/${property.slug}`} className="block">
                 <div className="relative overflow-hidden">
                   <img 
-                    src={property.image} 
+                    src={property.image || "/placeholder.svg"} 
                     alt={property.title}
                     className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
@@ -92,7 +106,7 @@ export default function Properties() {
                     {property.price}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {property.pricePerM2}
+                    {property.price_per_m2}
                   </div>
                 </div>
 

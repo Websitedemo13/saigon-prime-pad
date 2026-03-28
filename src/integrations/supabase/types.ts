@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      properties: {
+        Row: {
+          amenities: string[]
+          area: string
+          area_num: number
+          bathrooms: number
+          bedrooms: number
+          created_at: string
+          description: string
+          developer: string
+          district: string
+          features: string[]
+          floors: number
+          gallery: string[]
+          id: string
+          image: string
+          is_active: boolean
+          location: string
+          nearby_places: string[]
+          parking: string
+          price: string
+          price_num: number
+          price_per_m2: string
+          roi: string
+          slug: string
+          sort_order: number
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          year_built: string
+        }
+        Insert: {
+          amenities?: string[]
+          area?: string
+          area_num?: number
+          bathrooms?: number
+          bedrooms?: number
+          created_at?: string
+          description?: string
+          developer?: string
+          district?: string
+          features?: string[]
+          floors?: number
+          gallery?: string[]
+          id?: string
+          image?: string
+          is_active?: boolean
+          location?: string
+          nearby_places?: string[]
+          parking?: string
+          price?: string
+          price_num?: number
+          price_per_m2?: string
+          roi?: string
+          slug: string
+          sort_order?: number
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          year_built?: string
+        }
+        Update: {
+          amenities?: string[]
+          area?: string
+          area_num?: number
+          bathrooms?: number
+          bedrooms?: number
+          created_at?: string
+          description?: string
+          developer?: string
+          district?: string
+          features?: string[]
+          floors?: number
+          gallery?: string[]
+          id?: string
+          image?: string
+          is_active?: boolean
+          location?: string
+          nearby_places?: string[]
+          parking?: string
+          price?: string
+          price_num?: number
+          price_per_m2?: string
+          roi?: string
+          slug?: string
+          sort_order?: number
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          year_built?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content: Json
