@@ -4,14 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getPropertyBySlug, properties } from "@/data/properties";
+import { usePropertyBySlug, useProperties } from "@/hooks/useProperties";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 
 export default function PropertyDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const property = getPropertyBySlug(slug || "");
+  const { data: property, isLoading } = usePropertyBySlug(slug || "");
+  const { data: allProperties } = useProperties();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -26,7 +35,7 @@ export default function PropertyDetail() {
     );
   }
 
-  const otherProperties = properties.filter(p => p.id !== property.id);
+  const otherProperties = allProperties?.filter(p => p.id !== property.id) || [];
 
   return (
     <div className="min-h-screen">
@@ -35,7 +44,7 @@ export default function PropertyDetail() {
       {/* Hero Banner */}
       <section className="relative h-[60vh] min-h-[400px]">
         <img
-          src={property.image}
+          src={property.image || "/placeholder.svg"}
           alt={property.title}
           className="w-full h-full object-cover"
         />
@@ -84,7 +93,7 @@ export default function PropertyDetail() {
                     <div>
                       <p className="text-muted-foreground text-sm mb-1">Giá bán</p>
                       <div className="text-4xl font-bold text-primary">{property.price}</div>
-                      <p className="text-muted-foreground">{property.pricePerM2}</p>
+                      <p className="text-muted-foreground">{property.price_per_m2}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -115,57 +124,62 @@ export default function PropertyDetail() {
               </Card>
 
               {/* Features */}
-              <Card className="border-0 shadow-card">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Đặc Điểm Nổi Bật</h2>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {property.features.map((f, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg">
-                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                        <span className="font-medium">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              {property.features.length > 0 && (
+                <Card className="border-0 shadow-card">
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Đặc Điểm Nổi Bật</h2>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {property.features.map((f, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 bg-accent/50 rounded-lg">
+                          <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                          <span className="font-medium">{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Amenities */}
-              <Card className="border-0 shadow-card">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Tiện Ích</h2>
-                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {property.amenities.map((a, i) => (
-                      <div key={i} className="flex items-center gap-2 text-muted-foreground">
-                        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                        {a}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              {property.amenities.length > 0 && (
+                <Card className="border-0 shadow-card">
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Tiện Ích</h2>
+                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {property.amenities.map((a, i) => (
+                        <div key={i} className="flex items-center gap-2 text-muted-foreground">
+                          <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                          {a}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Gallery */}
-              <Card className="border-0 shadow-card">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Hình Ảnh Dự Án</h2>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {property.gallery.map((img, i) => (
-                      <img
-                        key={i}
-                        src={img}
-                        alt={`${property.title} - ${i + 1}`}
-                        className="rounded-xl w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              {property.gallery.length > 0 && (
+                <Card className="border-0 shadow-card">
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Hình Ảnh Dự Án</h2>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {property.gallery.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`${property.title} - ${i + 1}`}
+                          className="rounded-xl w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Info Card */}
               <Card className="border-0 shadow-card sticky top-24">
                 <CardContent className="p-6 space-y-5">
                   <h3 className="text-xl font-bold">Thông Tin Dự Án</h3>
@@ -173,7 +187,7 @@ export default function PropertyDetail() {
                   <div className="space-y-4 text-sm">
                     {[
                       { label: "Chủ đầu tư", value: property.developer },
-                      { label: "Năm bàn giao", value: property.yearBuilt },
+                      { label: "Năm bàn giao", value: property.year_built },
                       { label: "Bãi đỗ xe", value: property.parking },
                     ].map((item, i) => (
                       <div key={i} className="flex justify-between">
@@ -183,16 +197,20 @@ export default function PropertyDetail() {
                     ))}
                   </div>
 
-                  <Separator />
-                  <h4 className="font-bold">Vị trí lân cận</h4>
-                  <div className="space-y-2">
-                    {property.nearbyPlaces.map((place, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
-                        {place}
+                  {property.nearby_places.length > 0 && (
+                    <>
+                      <Separator />
+                      <h4 className="font-bold">Vị trí lân cận</h4>
+                      <div className="space-y-2">
+                        {property.nearby_places.map((place, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
+                            {place}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
 
                   <Separator />
                   <div className="space-y-3">
@@ -217,17 +235,13 @@ export default function PropertyDetail() {
             <div className="mt-16">
               <h2 className="text-3xl font-bold mb-8">Dự Án Liên Quan</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {otherProperties.map((p) => (
-                  <Link
-                    key={p.id}
-                    to={`/du-an/${p.slug}`}
-                    className="group"
-                  >
+                {otherProperties.slice(0, 4).map((p) => (
+                  <Link key={p.id} to={`/du-an/${p.slug}`} className="group">
                     <Card className="card-hover border-0 shadow-card overflow-hidden">
                       <div className="flex flex-col sm:flex-row">
                         <div className="sm:w-48 h-40 sm:h-auto overflow-hidden shrink-0">
                           <img
-                            src={p.image}
+                            src={p.image || "/placeholder.svg"}
                             alt={p.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             loading="lazy"

@@ -91,7 +91,7 @@ export default function Admin() {
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="logo" className="space-y-4 sm:space-y-8">
-          <TabsList className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 h-auto bg-transparent">
+          <TabsList className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-1.5 sm:gap-2 h-auto bg-transparent">
             {[
               { value: "logo", icon: Settings, label: "Logo" },
               { value: "hero", icon: Layout, label: "Hero" },
