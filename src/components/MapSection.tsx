@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
-import { properties } from "@/data/properties";
+import { useProperties } from "@/hooks/useProperties";
 import "leaflet/dist/leaflet.css";
 
 // Property coordinates in HCM
@@ -18,16 +17,22 @@ const propertyCoords: Record<string, [number, number]> = {
 };
 
 export default function MapSection() {
+  const { data: properties = [] } = useProperties();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    if (!mapRef.current || !properties.length) return;
+
+    // Clean up previous map
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
 
     const initMap = async () => {
       const L = await import("leaflet");
 
-      // Fix default marker icon
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
@@ -43,7 +48,6 @@ export default function MapSection() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      // Custom icon
       const goldIcon = L.divIcon({
         className: "custom-marker",
         html: `<div style="
@@ -67,7 +71,7 @@ export default function MapSection() {
         const marker = L.marker(coords, { icon: goldIcon }).addTo(map);
         marker.bindPopup(`
           <div style="min-width: 220px; font-family: sans-serif;">
-            <img src="${p.image}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />
+            ${p.image ? `<img src="${p.image}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />` : ''}
             <h3 style="margin:0 0 4px; font-size:14px; font-weight:700;">${p.title}</h3>
             <p style="margin:0 0 4px; color:#666; font-size:12px;">${p.location}</p>
             <p style="margin:0 0 8px; color:#D4A853; font-weight:700; font-size:16px;">${p.price}</p>
@@ -91,7 +95,7 @@ export default function MapSection() {
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [properties]);
 
   return (
     <section className="py-20 bg-gradient-to-br from-background to-muted/30">
@@ -110,7 +114,6 @@ export default function MapSection() {
           <div ref={mapRef} className="w-full h-[500px] md:h-[600px]" />
         </div>
 
-        {/* Legend */}
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           {["Căn hộ", "Penthouse", "Biệt thự", "Shophouse", "Văn phòng", "Đất nền", "Nhà phố"].map((type) => (
             <div key={type} className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-full border border-border text-sm">
