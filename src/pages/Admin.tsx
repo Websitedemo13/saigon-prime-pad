@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Save, ArrowLeft, Settings, Layout, MessageSquare, Phone, FileText, Type } from "lucide-react";
+import { Save, ArrowLeft, Settings, Layout, MessageSquare, Phone, FileText, Type, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAllSiteContent, useUpdateSiteContent } from "@/hooks/useSiteContent";
 import { Json } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 
 type SectionData = Record<string, any>;
 
@@ -95,6 +96,7 @@ export default function Admin() {
               { value: "logo", icon: Settings, label: "Logo" },
               { value: "hero", icon: Layout, label: "Hero" },
               { value: "about", icon: FileText, label: "Giới thiệu" },
+              { value: "properties", icon: Building2, label: "Dự án" },
               { value: "reviews", icon: MessageSquare, label: "Đánh giá" },
               { value: "contact", icon: Phone, label: "Liên hệ" },
               { value: "footer", icon: Type, label: "Footer" },
@@ -183,6 +185,15 @@ export default function Admin() {
                 </div>
               </div>
             </SectionCard>
+          </TabsContent>
+
+          {/* Properties Section */}
+          <TabsContent value="properties">
+            <Card className="border-0 shadow-lg">
+              <CardContent className="pt-6">
+                <PropertiesAdmin />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Reviews Section */}
