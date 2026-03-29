@@ -1,23 +1,102 @@
-import { useEffect, useRef, useState } from "react";
-import { MapPin, Navigation, Layers } from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { Navigation, Layers, Search, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useProperties } from "@/hooks/useProperties";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import "leaflet/dist/leaflet.css";
+
+const TYPE_COLORS: Record<string, string> = {
+  "Căn hộ": "#D4A853",
+  "Penthouse": "#E8B86D",
+  "Biệt thự": "#2D5F2D",
+  "Shophouse": "#C0392B",
+  "Văn phòng": "#2980B9",
+  "Đất nền": "#8E44AD",
+  "Nhà phố": "#E67E22",
+  "Studio": "#1ABC9C",
+};
+
+const PRICE_RANGES = [
+  { label: "Tất cả", min: 0, max: Infinity },
+  { label: "Dưới 3 tỷ", min: 0, max: 3 },
+  { label: "3 - 5 tỷ", min: 3, max: 5 },
+  { label: "5 - 10 tỷ", min: 5, max: 10 },
+  { label: "10 - 20 tỷ", min: 10, max: 20 },
+  { label: "Trên 20 tỷ", min: 20, max: Infinity },
+];
+
+function getColor(type: string) {
+  for (const [key, color] of Object.entries(TYPE_COLORS)) {
+    if (type.toLowerCase().includes(key.toLowerCase())) return color;
+  }
+  return "#D4A853";
+}
 
 export default function MapSection() {
   const { data: properties = [] } = useProperties();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const [activeProperty, setActiveProperty] = useState<string | null>(null);
+  const markersRef = useRef<any[]>([]);
 
-  const propertiesWithCoords = properties.filter((p) => p.latitude && p.longitude);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [selectedPriceRange, setSelectedPriceRange] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
 
+  const propertiesWithCoords = useMemo(
+    () => properties.filter((p) => p.latitude && p.longitude),
+    [properties]
+  );
+
+  const allTypes = useMemo(
+    () => [...new Set(propertiesWithCoords.map((p) => p.type).filter(Boolean))],
+    [propertiesWithCoords]
+  );
+
+  const filteredProperties = useMemo(() => {
+    const range = PRICE_RANGES[selectedPriceRange];
+    return propertiesWithCoords.filter((p) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !p.title.toLowerCase().includes(q) &&
+          !p.location.toLowerCase().includes(q) &&
+          !p.district.toLowerCase().includes(q)
+        )
+          return false;
+      }
+      if (selectedTypes.size > 0) {
+        if (!selectedTypes.has(p.type)) return false;
+      }
+      if (range && p.price_num) {
+        if (p.price_num < range.min || p.price_num > range.max) return false;
+      }
+      return true;
+    });
+  }, [propertiesWithCoords, searchQuery, selectedTypes, selectedPriceRange]);
+
+  const toggleType = (type: string) => {
+    setSelectedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedTypes(new Set());
+    setSelectedPriceRange(0);
+  };
+
+  const hasFilters = searchQuery || selectedTypes.size > 0 || selectedPriceRange > 0;
+
+  // Initialize map once
   useEffect(() => {
     if (!mapRef.current || !propertiesWithCoords.length) return;
 
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
+    if (mapInstanceRef.current) return; // already initialized
 
     const initMap = async () => {
       const L = await import("leaflet");
@@ -36,36 +115,40 @@ export default function MapSection() {
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // CartoDB Voyager - beautiful, modern tile style
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
         subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 
-      const typeColors: Record<string, string> = {
-        "Căn hộ": "#D4A853",
-        "Penthouse": "#E8B86D",
-        "Biệt thự": "#2D5F2D",
-        "Shophouse": "#C0392B",
-        "Văn phòng": "#2980B9",
-        "Đất nền": "#8E44AD",
-        "Nhà phố": "#E67E22",
-        "Studio": "#1ABC9C",
-      };
+      mapInstanceRef.current = map;
+    };
 
-      const getColor = (type: string) => {
-        for (const [key, color] of Object.entries(typeColors)) {
-          if (type.toLowerCase().includes(key.toLowerCase())) return color;
-        }
-        return "#D4A853";
-      };
+    initMap();
 
-      const markers: any[] = [];
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [propertiesWithCoords.length]);
 
-      propertiesWithCoords.forEach((p) => {
+  // Update markers when filters change
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const updateMarkers = async () => {
+      const L = await import("leaflet");
+
+      // Remove old markers
+      markersRef.current.forEach((m) => map.removeLayer(m));
+      markersRef.current = [];
+
+      filteredProperties.forEach((p) => {
         const color = getColor(p.type);
-        const goldIcon = L.divIcon({
+        const icon = L.divIcon({
           className: "custom-map-marker",
           html: `<div class="marker-pulse" style="--marker-color: ${color}">
             <div style="
@@ -84,10 +167,10 @@ export default function MapSection() {
           popupAnchor: [0, -24],
         });
 
-        const marker = L.marker([p.latitude!, p.longitude!], { icon: goldIcon }).addTo(map);
-        markers.push({ marker, property: p });
+        const marker = L.marker([p.latitude!, p.longitude!], { icon }).addTo(map);
+        markersRef.current.push(marker);
 
-        const popupContent = `
+        marker.bindPopup(`
           <div style="min-width: 240px; max-width: 280px; font-family: system-ui, -apple-system, sans-serif; padding: 4px;">
             ${p.image ? `<div style="position:relative; margin: -4px -4px 12px -4px; overflow:hidden; border-radius: 10px;">
               <img src="${p.image}" style="width:100%; height:140px; object-fit:cover; display:block;" />
@@ -111,59 +194,27 @@ export default function MapSection() {
               display:block; text-align:center; padding:8px 16px;
               background: linear-gradient(135deg, ${color}, ${color}dd);
               color:white; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600;
-              transition: opacity 0.2s;
             ">Xem chi tiết →</a>
           </div>
-        `;
-
-        marker.bindPopup(popupContent, {
-          maxWidth: 300,
-          className: "custom-leaflet-popup",
-        });
-
-        marker.on("click", () => setActiveProperty(p.id));
+        `, { maxWidth: 300, className: "custom-leaflet-popup" });
       });
 
-      // Fit bounds to show all markers
-      if (markers.length > 1) {
-        const group = L.featureGroup(markers.map((m) => m.marker));
+      // Fit bounds
+      if (markersRef.current.length > 1) {
+        const group = L.featureGroup(markersRef.current);
         map.fitBounds(group.getBounds().pad(0.15));
-      }
-
-      mapInstanceRef.current = map;
-    };
-
-    initMap();
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
+      } else if (markersRef.current.length === 1) {
+        const ll = markersRef.current[0].getLatLng();
+        map.setView(ll, 14);
+      } else {
+        map.setView([10.7769, 106.7009], 12);
       }
     };
-  }, [propertiesWithCoords.length]);
+
+    updateMarkers();
+  }, [filteredProperties]);
 
   if (!propertiesWithCoords.length) return null;
-
-  // Unique types for legend
-  const types = [...new Set(propertiesWithCoords.map((p) => p.type).filter(Boolean))];
-  const typeColors: Record<string, string> = {
-    "Căn hộ": "#D4A853",
-    "Penthouse": "#E8B86D",
-    "Biệt thự": "#2D5F2D",
-    "Shophouse": "#C0392B",
-    "Văn phòng": "#2980B9",
-    "Đất nền": "#8E44AD",
-    "Nhà phố": "#E67E22",
-    "Studio": "#1ABC9C",
-  };
-
-  const getColor = (type: string) => {
-    for (const [key, color] of Object.entries(typeColors)) {
-      if (type.toLowerCase().includes(key.toLowerCase())) return color;
-    }
-    return "#D4A853";
-  };
 
   return (
     <section className="py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
@@ -174,41 +225,158 @@ export default function MapSection() {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-12 animate-fade-in">
+        <div className="text-center mb-10 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
             <Navigation className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Bản đồ tương tác</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Vị Trí Dự Án
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Vị Trí Dự Án</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Khám phá vị trí đắc địa của {propertiesWithCoords.length} dự án BĐS cao cấp trên bản đồ TP.HCM
           </p>
         </div>
 
+        {/* Search & Filter Bar */}
+        <div className="mb-6 space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm theo tên, vị trí, quận..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-card/80 backdrop-blur-sm border-border/50 rounded-xl h-11"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 h-11 rounded-xl border text-sm font-medium transition-colors shrink-0 ${
+                showFilters || hasFilters
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card/80 backdrop-blur-sm border-border/50 text-foreground hover:bg-muted"
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="hidden sm:inline">Bộ lọc</span>
+              {hasFilters && (
+                <span className="w-5 h-5 rounded-full bg-primary-foreground/20 text-[10px] flex items-center justify-center font-bold">
+                  {(selectedTypes.size > 0 ? 1 : 0) + (selectedPriceRange > 0 ? 1 : 0)}
+                </span>
+              )}
+              <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+
+          {/* Expandable Filters */}
+          {showFilters && (
+            <div className="bg-card/90 backdrop-blur-md rounded-2xl border border-border/50 p-4 space-y-4 shadow-lg animate-fade-in">
+              {/* Type filter */}
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Loại BĐS</label>
+                <div className="flex flex-wrap gap-2">
+                  {allTypes.map((type) => {
+                    const active = selectedTypes.has(type);
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => toggleType(type)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                          active
+                            ? "border-transparent text-white shadow-md"
+                            : "border-border/50 text-foreground bg-background hover:bg-muted"
+                        }`}
+                        style={active ? { background: `linear-gradient(135deg, ${getColor(type)}, ${getColor(type)}cc)` } : {}}
+                      >
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ background: getColor(type) }}
+                        />
+                        {type}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Price range filter */}
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Khoảng giá</label>
+                <div className="flex flex-wrap gap-2">
+                  {PRICE_RANGES.map((range, i) => (
+                    <button
+                      key={range.label}
+                      onClick={() => setSelectedPriceRange(i)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                        selectedPriceRange === i
+                          ? "bg-primary text-primary-foreground border-primary shadow-md"
+                          : "border-border/50 text-foreground bg-background hover:bg-muted"
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {hasFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-primary hover:underline font-medium flex items-center gap-1"
+                >
+                  <X className="w-3.5 h-3.5" /> Xóa tất cả bộ lọc
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Map Container */}
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 group">
-          {/* Gradient overlay top */}
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
           <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/30 to-transparent z-10 pointer-events-none" />
-          
+
           <div ref={mapRef} className="w-full h-[450px] sm:h-[500px] md:h-[600px]" />
 
-          {/* Property count badge */}
+          {/* Result count badge */}
           <div className="absolute top-4 left-4 z-20">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background/95 backdrop-blur-md shadow-lg border border-border/50">
               <Layers className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold">{propertiesWithCoords.length} dự án</span>
+              <span className="text-sm font-bold">
+                {filteredProperties.length}/{propertiesWithCoords.length} dự án
+              </span>
             </div>
           </div>
+
+          {/* No results message */}
+          {filteredProperties.length === 0 && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+              <div className="text-center p-6">
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                <p className="text-lg font-semibold">Không tìm thấy dự án</p>
+                <p className="text-muted-foreground text-sm mb-4">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                <button onClick={clearFilters} className="text-primary font-medium hover:underline text-sm">
+                  Xóa bộ lọc
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Legend */}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          {types.map((type) => (
+          {allTypes.map((type) => (
             <div
               key={type}
-              className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full border border-border/50 text-sm shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => toggleType(type)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm shadow-sm cursor-pointer transition-all border ${
+                selectedTypes.size === 0 || selectedTypes.has(type)
+                  ? "bg-card/80 backdrop-blur-sm border-border/50 hover:shadow-md"
+                  : "bg-muted/30 border-transparent opacity-50"
+              }`}
             >
               <div
                 className="w-3.5 h-3.5 rounded-full shadow-sm"
