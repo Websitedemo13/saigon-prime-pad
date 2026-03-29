@@ -31,7 +31,9 @@ export type Database = {
           id: string
           image: string
           is_active: boolean
+          latitude: number | null
           location: string
+          longitude: number | null
           nearby_places: string[]
           parking: string
           price: string
@@ -62,7 +64,9 @@ export type Database = {
           id?: string
           image?: string
           is_active?: boolean
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           nearby_places?: string[]
           parking?: string
           price?: string
@@ -93,7 +97,9 @@ export type Database = {
           id?: string
           image?: string
           is_active?: boolean
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           nearby_places?: string[]
           parking?: string
           price?: string
