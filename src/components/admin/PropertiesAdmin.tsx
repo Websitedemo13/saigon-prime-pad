@@ -1,13 +1,30 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Save, Building2, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Plus, Pencil, Trash2, X, Save, Building2, Eye, EyeOff, GripVertical, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAllProperties, useCreateProperty, useUpdateProperty, useDeleteProperty, DbProperty } from "@/hooks/useProperties";
+import { useAllProperties, useCreateProperty, useUpdateProperty, useDeleteProperty, useReorderProperties, DbProperty } from "@/hooks/useProperties";
 import ImageUpload from "@/components/admin/ImageUpload";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 function generateSlug(title: string) {
   return title
@@ -24,7 +41,81 @@ const emptyProperty: Partial<DbProperty> = {
   type: "", status: "", roi: "", image: "", gallery: [], features: [],
   description: "", amenities: [], developer: "", year_built: "", floors: 0,
   parking: "", nearby_places: [], sort_order: 0, is_active: true,
+  latitude: null, longitude: null,
 };
+
+function SortablePropertyItem({
+  property, onEdit, onDelete, onToggleActive, isEditing,
+}: {
+  property: DbProperty;
+  onEdit: (p: DbProperty) => void;
+  onDelete: (id: string, title: string) => void;
+  onToggleActive: (p: DbProperty) => void;
+  isEditing: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: property.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className={`border shadow-sm ${!property.is_active ? "opacity-60" : ""} ${isDragging ? "shadow-lg" : ""}`}>
+      <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+        <button
+          {...attributes}
+          {...listeners}
+          className="touch-none cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted shrink-0"
+          aria-label="Kéo để sắp xếp"
+        >
+          <GripVertical className="w-5 h-5 text-muted-foreground" />
+        </button>
+
+        {property.image ? (
+          <img src={property.image} alt={property.title} className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0" />
+        ) : (
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+            <Building2 className="w-6 h-6 text-muted-foreground" />
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-sm sm:text-base truncate">{property.title}</h3>
+            {!property.is_active && <Badge variant="secondary" className="text-xs">Ẩn</Badge>}
+            {property.latitude && property.longitude && (
+              <Badge variant="outline" className="text-xs gap-1">
+                <MapPin className="w-3 h-3" /> GPS
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <span>{property.type}</span>
+            <span>•</span>
+            <span>{property.price}</span>
+            <span>•</span>
+            <span>{property.district}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onToggleActive(property)}>
+            {property.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(property)}>
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(property.id, property.title)}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export default function PropertiesAdmin() {
   const { toast } = useToast();
@@ -32,11 +123,16 @@ export default function PropertiesAdmin() {
   const createMutation = useCreateProperty();
   const updateMutation = useUpdateProperty();
   const deleteMutation = useDeleteProperty();
+  const reorderMutation = useReorderProperties();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<DbProperty>>(emptyProperty);
   const [isCreating, setIsCreating] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const startCreate = () => {
     setIsCreating(true);
@@ -48,7 +144,6 @@ export default function PropertiesAdmin() {
     setIsCreating(false);
     setEditingId(p.id);
     setForm({ ...p });
-    setExpandedId(p.id);
   };
 
   const cancel = () => {
@@ -110,6 +205,23 @@ export default function PropertiesAdmin() {
     }
   };
 
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !properties) return;
+
+    const oldIndex = properties.findIndex((p) => p.id === active.id);
+    const newIndex = properties.findIndex((p) => p.id === over.id);
+    const reordered = arrayMove(properties, oldIndex, newIndex);
+
+    const updates = reordered.map((p, i) => ({ id: p.id, sort_order: i + 1 }));
+    try {
+      await reorderMutation.mutateAsync(updates);
+      toast({ title: "Đã cập nhật thứ tự!" });
+    } catch {
+      toast({ title: "Lỗi", description: "Không thể cập nhật thứ tự.", variant: "destructive" });
+    }
+  }, [properties, reorderMutation, toast]);
+
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   if (isLoading) {
@@ -118,11 +230,10 @@ export default function PropertiesAdmin() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold">Danh sách dự án ({properties?.length || 0})</h2>
-          <p className="text-sm text-muted-foreground">Quản lý thêm/sửa/xóa dự án bất động sản</p>
+          <p className="text-sm text-muted-foreground">Kéo thả để sắp xếp thứ tự • Quản lý thêm/sửa/xóa dự án</p>
         </div>
         <Button onClick={startCreate} disabled={isCreating} className="btn-primary">
           <Plus className="w-4 h-4 mr-2" /> Thêm dự án
@@ -212,9 +323,34 @@ export default function PropertiesAdmin() {
                 <label className="block text-sm font-medium text-muted-foreground mb-1">Bãi đỗ xe</label>
                 <Input value={form.parking || ""} onChange={(e) => updateFormField("parking", e.target.value)} />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Thứ tự hiển thị</label>
-                <Input type="number" value={form.sort_order || 0} onChange={(e) => updateFormField("sort_order", parseInt(e.target.value) || 0)} />
+            </div>
+
+            {/* GPS Coordinates */}
+            <div className="p-4 rounded-lg bg-muted/50 border border-border">
+              <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Tọa độ GPS (hiển thị trên bản đồ)
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Vĩ độ (Latitude)</label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="10.7769"
+                    value={form.latitude ?? ""}
+                    onChange={(e) => updateFormField("latitude", e.target.value ? parseFloat(e.target.value) : null)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Kinh độ (Longitude)</label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="106.7009"
+                    value={form.longitude ?? ""}
+                    onChange={(e) => updateFormField("longitude", e.target.value ? parseFloat(e.target.value) : null)}
+                  />
+                </div>
               </div>
             </div>
 
@@ -263,63 +399,23 @@ export default function PropertiesAdmin() {
         </Card>
       )}
 
-      {/* Properties List */}
-      <div className="space-y-3">
-        {properties?.map((p) => (
-          <Card key={p.id} className={`border shadow-sm ${!p.is_active ? "opacity-60" : ""}`}>
-            <div
-              className="flex items-center gap-3 p-3 sm:p-4 cursor-pointer"
-              onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-            >
-              {p.image ? (
-                <img src={p.image} alt={p.title} className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover shrink-0" />
-              ) : (
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                  <Building2 className="w-6 h-6 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-sm sm:text-base truncate">{p.title}</h3>
-                  {!p.is_active && <Badge variant="secondary" className="text-xs">Ẩn</Badge>}
-                </div>
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                  <span>{p.type}</span>
-                  <span>•</span>
-                  <span>{p.price}</span>
-                  <span>•</span>
-                  <span>{p.district}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); toggleActive(p); }}>
-                  {p.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); startEdit(p); }}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(p.id, p.title); }}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-                {expandedId === p.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </div>
-            </div>
-            {expandedId === p.id && editingId !== p.id && (
-              <CardContent className="pt-0 pb-4 px-4 border-t border-border">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mt-3">
-                  <div><span className="text-muted-foreground">Diện tích:</span> {p.area}</div>
-                  <div><span className="text-muted-foreground">Phòng ngủ:</span> {p.bedrooms}</div>
-                  <div><span className="text-muted-foreground">Chủ đầu tư:</span> {p.developer}</div>
-                  <div><span className="text-muted-foreground">ROI:</span> {p.roi}</div>
-                </div>
-                {p.description && (
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{p.description}</p>
-                )}
-              </CardContent>
-            )}
-          </Card>
-        ))}
-      </div>
+      {/* Sortable Properties List */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={properties?.map((p) => p.id) || []} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {properties?.map((p) => (
+              <SortablePropertyItem
+                key={p.id}
+                property={p}
+                onEdit={startEdit}
+                onDelete={handleDelete}
+                onToggleActive={toggleActive}
+                isEditing={editingId === p.id}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

@@ -29,8 +29,29 @@ export interface DbProperty {
   nearby_places: string[];
   sort_order: number;
   is_active: boolean;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export function useReorderProperties() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (items: { id: string; sort_order: number }[]) => {
+      for (const item of items) {
+        const { error } = await supabase
+          .from("properties")
+          .update({ sort_order: item.sort_order })
+          .eq("id", item.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["properties"] });
+      qc.invalidateQueries({ queryKey: ["properties-all"] });
+    },
+  });
 }
 
 export function useProperties() {
