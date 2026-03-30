@@ -11,7 +11,7 @@ const defaultStats = [
 
 const statIcons = [Building2, Users, Award, TrendingUp];
 
-const achievements = [
+const defaultAchievements = [
   "Đối tác chiến lược của các chủ đầu tư hàng đầu",
   "Đội ngũ tư vấn chuyên nghiệp và giàu kinh nghiệm",
   "Hệ thống pháp lý minh bạch, uy tín",
@@ -22,11 +22,16 @@ const achievements = [
 
 export default function About() {
   const { data: aboutContent } = useSiteContent("about");
+  const { data: contactContent } = useSiteContent("contact");
   const content = aboutContent?.content as Record<string, any> | null;
+  const contact = contactContent?.content as Record<string, any> | null;
 
   const title = content?.title || "Về VSM Real Estate";
-  const description = content?.description || "Với hơn 15 năm kinh nghiệm trong lĩnh vực bất động sản, VSM Real Estate tự hào là đối tác tin cậy của hàng nghìn khách hàng trong việc đầu tư và sở hữu những bất động sản có giá trị tại Hồ Chí Minh.";
+  const description = content?.description || "Với hơn 15 năm kinh nghiệm trong lĩnh vực bất động sản, VSM Real Estate tự hào là đối tác tin cậy của hàng nghìn khách hàng.";
   const videoUrl = content?.videoUrl || "";
+  const whyChooseTitle = content?.whyChooseTitle || "Tại sao chọn VSM Real Estate?";
+  const achievements: string[] = content?.achievements || defaultAchievements;
+  const phone = contact?.phone || "0123.456.789";
 
   const stats = content?.stats?.length
     ? content.stats.map((s: any, i: number) => ({
@@ -44,7 +49,6 @@ export default function About() {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">{description}</p>
         </div>
 
-        {/* Video embed */}
         {videoUrl && (
           <div className="max-w-4xl mx-auto mb-16 rounded-2xl overflow-hidden shadow-luxury">
             {videoUrl.includes("youtube") ? (
@@ -62,7 +66,6 @@ export default function About() {
           </div>
         )}
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
           {stats.map((stat: any, index: number) => (
             <Card key={index} className="card-hover border-0 bg-gradient-card animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -77,14 +80,12 @@ export default function About() {
           ))}
         </div>
 
-        {/* About Content */}
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-in">
-            <h3 className="text-3xl font-bold mb-6 text-primary">Tại sao chọn VSM Real Estate?</h3>
+            <h3 className="text-3xl font-bold mb-6 text-primary">{whyChooseTitle}</h3>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
               Chúng tôi không chỉ là một công ty môi giới, mà là đối tác đồng hành 
-              trong hành trình đầu tư của bạn. Với đội ngũ chuyên gia giàu kinh nghiệm 
-              và mạng lưới rộng khắp, VSM cam kết mang đến những cơ hội đầu tư tốt nhất.
+              trong hành trình đầu tư của bạn.
             </p>
             <div className="grid gap-4">
               {achievements.slice(0, 3).map((achievement, index) => (
@@ -110,7 +111,7 @@ export default function About() {
                 </div>
                 <div className="mt-8 p-6 bg-white/10 rounded-xl">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-primary-light mb-2">0123.456.789</div>
+                    <div className="text-3xl font-bold text-primary-light mb-2">{phone}</div>
                     <div className="text-secondary-foreground">Hotline tư vấn 24/7</div>
                   </div>
                 </div>
