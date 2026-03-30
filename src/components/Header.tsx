@@ -17,11 +17,14 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { data: logoContent } = useSiteContent("logo");
+  const { data: contactContent } = useSiteContent("contact");
   const logo = logoContent?.content as Record<string, any> | null;
+  const contact = contactContent?.content as Record<string, any> | null;
 
   const logoText = logo?.text || "VSM";
   const logoSubtitle = logo?.subtitle || "Real Estate";
   const logoImage = logo?.imageUrl || "";
+  const phone = contact?.phone || "0123.456.789";
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 50);
@@ -42,7 +45,6 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
           {logoImage ? (
             <img src={logoImage} alt={logoText} className="h-10 object-contain group-hover:scale-110 transition-transform" />
@@ -58,7 +60,6 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((link) => (
             <button
@@ -72,21 +73,18 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* CTA */}
         <div className="hidden lg:flex items-center gap-3">
-          <a href="tel:0123456789" className="flex items-center gap-2 text-primary-light font-semibold text-sm hover:text-white transition-colors">
-            <Phone className="w-4 h-4" />0123.456.789
+          <a href={`tel:${phone.replace(/\./g, '')}`} className="flex items-center gap-2 text-primary-light font-semibold text-sm hover:text-white transition-colors">
+            <Phone className="w-4 h-4" />{phone}
           </a>
           <Button className="btn-primary text-sm" onClick={() => scrollTo("#contact")}>Tư Vấn Ngay</Button>
         </div>
 
-        {/* Mobile Toggle */}
         <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="lg:hidden text-white p-2">
           {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileOpen && (
         <div className="lg:hidden bg-secondary/98 backdrop-blur-xl border-t border-white/10 animate-fade-in">
           <div className="container mx-auto px-4 py-6 flex flex-col gap-2">
@@ -97,7 +95,7 @@ export default function Header() {
             ))}
             <div className="border-t border-white/10 mt-2 pt-4">
               <Button className="btn-primary w-full" onClick={() => scrollTo("#contact")}>
-                <Phone className="w-4 h-4 mr-2" /> Tư Vấn Ngay — 0123.456.789
+                <Phone className="w-4 h-4 mr-2" /> Tư Vấn Ngay — {phone}
               </Button>
             </div>
           </div>

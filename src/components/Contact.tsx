@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent } from "@/hooks/useSiteContent";
 
-const services = [
+const defaultServices = [
   "Tư vấn mua bán bất động sản",
   "Đầu tư và phát triển dự án",
   "Định giá và thẩm định",
@@ -20,7 +20,9 @@ const services = [
 export default function Contact() {
   const { toast } = useToast();
   const { data: contactContent } = useSiteContent("contact");
+  const { data: aboutContent } = useSiteContent("about");
   const content = contactContent?.content as Record<string, any> | null;
+  const about = aboutContent?.content as Record<string, any> | null;
 
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", service: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +43,17 @@ export default function Contact() {
   const phoneNum = content?.phone || "0123.456.789";
   const emailAddr = content?.email || "info@vsm-realestate.com";
   const address = content?.address || "123 Nguyễn Huệ, Quận 1, TP.HCM";
+  const services: string[] = content?.services?.length ? content.services : defaultServices;
+
+  // Use about stats for sidebar stats
+  const sidebarStats = about?.stats?.length
+    ? about.stats.map((s: any) => ({ value: s.value, label: s.label }))
+    : [
+        { value: "15+", label: "Năm kinh nghiệm" },
+        { value: "500+", label: "Dự án thành công" },
+        { value: "10K+", label: "Khách hàng" },
+        { value: "95%", label: "Hài lòng" },
+      ];
 
   return (
     <section className="py-20 bg-gradient-to-br from-background to-primary/5">
@@ -50,12 +63,11 @@ export default function Contact() {
             {content?.title || "Liên Hệ Với Chúng Tôi"}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {content?.subtitle || "Đừng chần chừ, hãy để VSM Real Estate đồng hành cùng bạn trong hành trình đầu tư bất động sản thành công"}
+            {content?.subtitle || "Đừng chần chừ, hãy để VSM Real Estate đồng hành cùng bạn"}
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-          {/* Contact Form */}
           <Card className="border-0 shadow-luxury animate-scale-in">
             <CardContent className="p-8">
               <h3 className="text-2xl font-bold mb-6">Đăng Ký Tư Vấn Miễn Phí</h3>
@@ -106,7 +118,6 @@ export default function Contact() {
             </CardContent>
           </Card>
 
-          {/* Contact Information */}
           <div className="space-y-6 animate-slide-in-right">
             <Card className="border-0 bg-gradient-secondary shadow-card">
               <CardContent className="p-8">
@@ -124,12 +135,7 @@ export default function Contact() {
               <CardContent className="p-6">
                 <h4 className="font-bold text-lg mb-4">Tại sao chọn VSM?</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { value: "15+", label: "Năm kinh nghiệm" },
-                    { value: "500+", label: "Dự án thành công" },
-                    { value: "10K+", label: "Khách hàng" },
-                    { value: "95%", label: "Hài lòng" },
-                  ].map((s, i) => (
+                  {sidebarStats.map((s: any, i: number) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-primary">{s.value}</div>
                       <div className="text-sm text-muted-foreground">{s.label}</div>

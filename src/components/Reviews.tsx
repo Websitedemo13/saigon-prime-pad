@@ -1,20 +1,29 @@
 import { useState, useEffect } from "react";
-import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Quote, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import avatar1 from "@/assets/avatar-1.jpg";
-import avatar2 from "@/assets/avatar-2.jpg";
-import avatar3 from "@/assets/avatar-3.jpg";
-import avatar4 from "@/assets/avatar-4.jpg";
-import avatar5 from "@/assets/avatar-5.jpg";
 
-const reviews = [
-  { id: 1, name: "Anh Minh Tuấn", location: "Quận 7, TP.HCM", rating: 5, content: "Tôi đã mua được căn hộ mơ ước nhờ sự tư vấn tận tình của VSM. Đội ngũ rất chuyên nghiệp, thủ tục nhanh chóng. Giá cả hợp lý, pháp lý minh bạch. Tôi sẽ giới thiệu cho bạn bè.", project: "Vinhomes Central Park", avatar: avatar1 },
-  { id: 2, name: "Chị Hương Lan", location: "Quận 2, TP.HCM", rating: 5, content: "Sau 6 tháng đầu tư với VSM, tôi đã có lợi nhuận 25%. Họ không chỉ bán mà còn tư vấn đầu tư rất hay. Đặc biệt ấn tượng với dịch vụ hậu mãi chu đáo.", project: "Masteri Thảo Điền", avatar: avatar2 },
-  { id: 3, name: "Anh Đức Hải", location: "Quận 9, TP.HCM", rating: 5, content: "VSM đã giúp tôi tìm được lô đất vàng trong khu đô thị mới. Từ khâu tìm hiểu, thẩm định đến hoàn tất thủ tục đều rất chuyên nghiệp. Cảm ơn team VSM!", project: "Vinhomes Grand Park", avatar: avatar3 },
-  { id: 4, name: "Chị Mai Anh", location: "Quận 1, TP.HCM", rating: 5, content: "Đội ngũ VSM rất am hiểu thị trường. Họ đã tư vấn tôi mua căn shophouse với vị trí đắc địa. Hiện tại giá trị bất động sản đã tăng 30% sau 1 năm.", project: "Landmark 81", avatar: avatar4 },
-  { id: 5, name: "Anh Quang Minh", location: "Bình Thạnh, TP.HCM", rating: 5, content: "Tôi rất hài lòng với dịch vụ của VSM. Không chỉ tư vấn mua bán mà còn hỗ trợ vay vốn ngân hàng với lãi suất ưu đãi. Thật sự là đối tác đáng tin cậy.", project: "The Sun Avenue", avatar: avatar5 },
+interface ReviewItem {
+  name: string;
+  location: string;
+  rating: number;
+  content: string;
+  project: string;
+  avatar?: string;
+}
+
+const defaultReviews: ReviewItem[] = [
+  { name: "Anh Minh Tuấn", location: "Quận 7, TP.HCM", rating: 5, content: "Tôi đã mua được căn hộ mơ ước nhờ sự tư vấn tận tình của VSM.", project: "Vinhomes Central Park" },
+  { name: "Chị Hương Lan", location: "Quận 2, TP.HCM", rating: 5, content: "Sau 6 tháng đầu tư với VSM, tôi đã có lợi nhuận 25%.", project: "Masteri Thảo Điền" },
+  { name: "Anh Đức Hải", location: "Quận 9, TP.HCM", rating: 5, content: "VSM đã giúp tôi tìm được lô đất vàng trong khu đô thị mới.", project: "Vinhomes Grand Park" },
+];
+
+const defaultBadges = [
+  { value: "4.9/5", label: "Điểm đánh giá" },
+  { value: "100%", label: "Khách hàng hài lòng" },
+  { value: "24/7", label: "Hỗ trợ tư vấn" },
+  { value: "0%", label: "Phí tư vấn" },
 ];
 
 export default function Reviews() {
@@ -23,20 +32,25 @@ export default function Reviews() {
   const { data: reviewsContent } = useSiteContent("reviews");
   const content = reviewsContent?.content as Record<string, any> | null;
 
+  const title = content?.title || "Khách Hàng Nói Gì Về VSM";
+  const subtitle = content?.subtitle || "Hàng nghìn khách hàng đã tin tưởng lựa chọn VSM Real Estate";
+  const reviews: ReviewItem[] = content?.reviews?.length ? content.reviews : defaultReviews;
+  const trustBadges = content?.trustBadges?.length ? content.trustBadges : defaultBadges;
+
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, reviews.length]);
 
   const nextReview = () => setCurrentIndex((prev) => (prev + 1) % reviews.length);
   const prevReview = () => setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
 
   const getCurrentReviews = () => {
     const items = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < Math.min(3, reviews.length); i++) {
       items.push(reviews[(currentIndex + i) % reviews.length]);
     }
     return items;
@@ -46,12 +60,8 @@ export default function Reviews() {
     <section id="reviews" className="py-20 bg-gradient-to-br from-accent/20 to-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            {content?.title || "Khách Hàng Nói Gì Về VSM"}
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {content?.subtitle || "Hàng nghìn khách hàng đã tin tưởng và đạt được thành công trong đầu tư bất động sản cùng VSM Real Estate"}
-          </p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">{title}</h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">{subtitle}</p>
         </div>
 
         <div className="relative max-w-6xl mx-auto">
@@ -62,13 +72,19 @@ export default function Reviews() {
           >
             {getCurrentReviews().map((review, index) => (
               <Card
-                key={review.id}
+                key={`${currentIndex}-${index}`}
                 className={`card-hover border-0 bg-gradient-card animate-scale-in ${index === 1 ? "md:scale-105 shadow-luxury" : ""}`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <CardContent className="p-8">
                   <div className="flex items-center mb-4">
-                    <img src={review.avatar} alt={review.name} className="w-14 h-14 rounded-full object-cover border-2 border-primary/30 mr-3" loading="lazy" width={56} height={56} />
+                    {review.avatar ? (
+                      <img src={review.avatar} alt={review.name} className="w-14 h-14 rounded-full object-cover border-2 border-primary/30 mr-3" loading="lazy" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary/30 mr-3">
+                        <User className="w-7 h-7 text-primary" />
+                      </div>
+                    )}
                     <div>
                       <h4 className="font-bold text-lg">{review.name}</h4>
                       <p className="text-muted-foreground text-sm">{review.location}</p>
@@ -107,14 +123,8 @@ export default function Reviews() {
           </div>
         </div>
 
-        {/* Trust Badges */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in">
-          {[
-            { value: "4.9/5", label: "Điểm đánh giá" },
-            { value: "100%", label: "Khách hàng hài lòng" },
-            { value: "24/7", label: "Hỗ trợ tư vấn" },
-            { value: "0%", label: "Phí tư vấn" },
-          ].map((item, i) => (
+          {trustBadges.map((item: any, i: number) => (
             <div key={i} className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">{item.value}</div>
               <div className="text-muted-foreground">{item.label}</div>
