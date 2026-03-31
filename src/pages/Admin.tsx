@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Save, ArrowLeft, Settings, Layout, MessageSquare, Phone, FileText, Type, Building2, Plus, Trash2, Star } from "lucide-react";
+import {
+  Save, ArrowLeft, Settings, Layout, MessageSquare, Phone, FileText, Type,
+  Building2, Plus, Trash2, Star, Globe, Image as ImageIcon, Video, Menu,
+  Facebook, Instagram, Youtube, Linkedin, Link as LinkIcon, GripVertical,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAllSiteContent, useUpdateSiteContent } from "@/hooks/useSiteContent";
 import { Json } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import VideoUpload from "@/components/admin/VideoUpload";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 
 type SectionData = Record<string, any>;
@@ -37,6 +43,16 @@ export default function Admin() {
     }));
   };
 
+  const updateNestedField = (section: string, parent: string, field: string, value: any) => {
+    setSections((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [parent]: { ...(prev[section]?.[parent] || {}), [field]: value },
+      },
+    }));
+  };
+
   const updateStatField = (section: string, index: number, field: string, value: string) => {
     setSections((prev) => {
       const stats = [...(prev[section]?.stats || [])];
@@ -45,10 +61,18 @@ export default function Admin() {
     });
   };
 
-  const updateArrayItem = (section: string, arrayKey: string, index: number, value: string) => {
+  const updateArrayItem = (section: string, arrayKey: string, index: number, value: any) => {
     setSections((prev) => {
       const arr = [...(prev[section]?.[arrayKey] || [])];
       arr[index] = value;
+      return { ...prev, [section]: { ...prev[section], [arrayKey]: arr } };
+    });
+  };
+
+  const updateArrayObjectField = (section: string, arrayKey: string, index: number, field: string, value: string) => {
+    setSections((prev) => {
+      const arr = [...(prev[section]?.[arrayKey] || [])];
+      arr[index] = { ...arr[index], [field]: value };
       return { ...prev, [section]: { ...prev[section], [arrayKey]: arr } };
     });
   };
@@ -143,9 +167,10 @@ export default function Admin() {
       </header>
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <Tabs defaultValue="logo" className="space-y-4 sm:space-y-8">
-          <TabsList className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-1.5 sm:gap-2 h-auto bg-transparent">
+        <Tabs defaultValue="header" className="space-y-4 sm:space-y-8">
+          <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-9 gap-1.5 sm:gap-2 h-auto bg-transparent">
             {[
+              { value: "header", icon: Menu, label: "Header" },
               { value: "logo", icon: Settings, label: "Logo" },
               { value: "hero", icon: Layout, label: "Hero" },
               { value: "about", icon: FileText, label: "Giới thiệu" },
@@ -166,7 +191,42 @@ export default function Admin() {
             ))}
           </TabsList>
 
-          {/* Logo */}
+          {/* ============ HEADER ============ */}
+          <TabsContent value="header">
+            <SectionCard title="Header / Điều hướng" icon={Menu} onSave={() => saveSection("header")} saving={updateMutation.isPending}>
+              <div className="space-y-6">
+                <FieldGroup label="Số điện thoại hiển thị trên header">
+                  <Input value={sections.header?.phone || ""} onChange={(e) => updateField("header", "phone", e.target.value)} placeholder="0123.456.789" />
+                </FieldGroup>
+                <FieldGroup label="Nút CTA (text)">
+                  <Input value={sections.header?.ctaText || ""} onChange={(e) => updateField("header", "ctaText", e.target.value)} placeholder="Tư Vấn Ngay" />
+                </FieldGroup>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold">Menu điều hướng</label>
+                    <Button size="sm" variant="outline" onClick={() => addArrayItem("header", "navLinks", { label: "", href: "#" })}>
+                      <Plus className="w-4 h-4 mr-1" /> Thêm link
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(sections.header?.navLinks || []).map((link: any, i: number) => (
+                      <div key={i} className="flex gap-2 items-center p-3 bg-muted/50 rounded-lg">
+                        <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <Input placeholder="Tên hiển thị" value={link.label || ""} onChange={(e) => updateArrayObjectField("header", "navLinks", i, "label", e.target.value)} className="flex-1" />
+                        <Input placeholder="#section-id" value={link.href || ""} onChange={(e) => updateArrayObjectField("header", "navLinks", i, "href", e.target.value)} className="w-32 sm:w-40" />
+                        <Button size="icon" variant="ghost" className="shrink-0 text-destructive" onClick={() => removeArrayItem("header", "navLinks", i)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </SectionCard>
+          </TabsContent>
+
+          {/* ============ LOGO ============ */}
           <TabsContent value="logo">
             <SectionCard title="Logo & Thương hiệu" icon={Settings} onSave={() => saveSection("logo")} saving={updateMutation.isPending}>
               <div className="grid gap-4 sm:gap-6">
@@ -179,53 +239,74 @@ export default function Admin() {
                 <FieldGroup label="Logo (ảnh)">
                   <ImageUpload value={sections.logo?.imageUrl || ""} onChange={(url) => updateField("logo", "imageUrl", url)} label="Logo" previewClassName="h-16 w-auto object-contain" />
                 </FieldGroup>
+                <FieldGroup label="Favicon">
+                  <ImageUpload value={sections.logo?.favicon || ""} onChange={(url) => updateField("logo", "favicon", url)} label="Favicon" previewClassName="h-10 w-10 object-contain" />
+                </FieldGroup>
               </div>
             </SectionCard>
           </TabsContent>
 
-          {/* Hero */}
+          {/* ============ HERO ============ */}
           <TabsContent value="hero">
             <SectionCard title="Hero Banner" icon={Layout} onSave={() => saveSection("hero")} saving={updateMutation.isPending}>
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 <FieldGroup label="Tiêu đề chính">
                   <Input value={sections.hero?.title || ""} onChange={(e) => updateField("hero", "title", e.target.value)} />
                 </FieldGroup>
                 <FieldGroup label="Mô tả phụ">
-                  <Textarea rows={3} value={sections.hero?.subtitle || ""} onChange={(e) => updateField("hero", "subtitle", e.target.value)} />
+                  <RichTextEditor value={sections.hero?.subtitle || ""} onChange={(html) => updateField("hero", "subtitle", html)} minHeight="100px" />
                 </FieldGroup>
-                <FieldGroup label="URL Video nền (YouTube/MP4)">
-                  <Input placeholder="https://youtube.com/..." value={sections.hero?.videoUrl || ""} onChange={(e) => updateField("hero", "videoUrl", e.target.value)} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FieldGroup label="Nút CTA chính (text)">
+                    <Input value={sections.hero?.ctaPrimary || ""} onChange={(e) => updateField("hero", "ctaPrimary", e.target.value)} placeholder="Tư Vấn Miễn Phí" />
+                  </FieldGroup>
+                  <FieldGroup label="Nút CTA phụ (text)">
+                    <Input value={sections.hero?.ctaSecondary || ""} onChange={(e) => updateField("hero", "ctaSecondary", e.target.value)} placeholder="Xem Dự Án" />
+                  </FieldGroup>
+                </div>
+                <FieldGroup label="Video nền (YouTube/MP4)">
+                  <VideoUpload value={sections.hero?.videoUrl || ""} onChange={(url) => updateField("hero", "videoUrl", url)} />
                 </FieldGroup>
                 <FieldGroup label="Ảnh nền (thay thế video)">
-                  <ImageUpload value={sections.hero?.backgroundImage || ""} onChange={(url) => updateField("hero", "backgroundImage", url)} label="Hero background" previewClassName="h-32 w-full object-cover" />
+                  <ImageUpload value={sections.hero?.backgroundImage || ""} onChange={(url) => updateField("hero", "backgroundImage", url)} label="Hero background" previewClassName="h-40 w-full object-cover" />
+                </FieldGroup>
+                <FieldGroup label="Ảnh overlay / Badge (góc)">
+                  <ImageUpload value={sections.hero?.overlayImage || ""} onChange={(url) => updateField("hero", "overlayImage", url)} label="Overlay" previewClassName="h-20 w-20 object-contain" />
                 </FieldGroup>
               </div>
             </SectionCard>
           </TabsContent>
 
-          {/* About */}
+          {/* ============ ABOUT ============ */}
           <TabsContent value="about">
             <SectionCard title="Giới Thiệu Công Ty" icon={FileText} onSave={() => saveSection("about")} saving={updateMutation.isPending}>
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 <FieldGroup label="Tiêu đề">
                   <Input value={sections.about?.title || ""} onChange={(e) => updateField("about", "title", e.target.value)} />
                 </FieldGroup>
-                <FieldGroup label="Mô tả">
-                  <Textarea rows={4} value={sections.about?.description || ""} onChange={(e) => updateField("about", "description", e.target.value)} />
+                <FieldGroup label="Nội dung mô tả (Rich text)">
+                  <RichTextEditor value={sections.about?.description || ""} onChange={(html) => updateField("about", "description", html)} minHeight="150px" />
+                </FieldGroup>
+                <FieldGroup label="Nội dung 'Cam kết' (Rich text)">
+                  <RichTextEditor value={sections.about?.commitmentContent || ""} onChange={(html) => updateField("about", "commitmentContent", html)} minHeight="120px" />
                 </FieldGroup>
                 <FieldGroup label="Tiêu đề 'Tại sao chọn'">
                   <Input value={sections.about?.whyChooseTitle || ""} onChange={(e) => updateField("about", "whyChooseTitle", e.target.value)} />
                 </FieldGroup>
-                <FieldGroup label="URL Video giới thiệu">
-                  <Input placeholder="https://youtube.com/..." value={sections.about?.videoUrl || ""} onChange={(e) => updateField("about", "videoUrl", e.target.value)} />
+                <FieldGroup label="Ảnh bìa section">
+                  <ImageUpload value={sections.about?.coverImage || ""} onChange={(url) => updateField("about", "coverImage", url)} label="About cover" previewClassName="h-40 w-full object-cover" />
+                </FieldGroup>
+                <FieldGroup label="Video giới thiệu">
+                  <VideoUpload value={sections.about?.videoUrl || ""} onChange={(url) => updateField("about", "videoUrl", url)} />
                 </FieldGroup>
                 <div>
                   <label className="block text-sm font-semibold mb-3">Số liệu thống kê</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {(sections.about?.stats || []).map((stat: any, i: number) => (
-                      <div key={i} className="flex gap-2 sm:gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div key={i} className="flex gap-2 sm:gap-3 p-3 bg-muted/50 rounded-lg items-center">
                         <Input placeholder="Giá trị" value={stat.value || ""} onChange={(e) => updateStatField("about", i, "value", e.target.value)} className="w-20 sm:w-24" />
                         <Input placeholder="Nhãn" value={stat.label || ""} onChange={(e) => updateStatField("about", i, "label", e.target.value)} />
+                        <Input placeholder="Icon (tên)" value={stat.icon || ""} onChange={(e) => updateStatField("about", i, "icon", e.target.value)} className="w-24" />
                       </div>
                     ))}
                   </div>
@@ -252,21 +333,24 @@ export default function Admin() {
             </SectionCard>
           </TabsContent>
 
-          {/* Properties Section title */}
+          {/* ============ PROPERTIES SECTION ============ */}
           <TabsContent value="properties_section">
             <SectionCard title="Tiêu đề Section Dự Án" icon={Building2} onSave={() => saveSection("properties_section")} saving={updateMutation.isPending}>
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 <FieldGroup label="Tiêu đề section">
                   <Input value={sections.properties_section?.title || ""} onChange={(e) => updateField("properties_section", "title", e.target.value)} />
                 </FieldGroup>
                 <FieldGroup label="Mô tả phụ">
-                  <Textarea rows={3} value={sections.properties_section?.subtitle || ""} onChange={(e) => updateField("properties_section", "subtitle", e.target.value)} />
+                  <RichTextEditor value={sections.properties_section?.subtitle || ""} onChange={(html) => updateField("properties_section", "subtitle", html)} minHeight="80px" />
+                </FieldGroup>
+                <FieldGroup label="Ảnh bìa section">
+                  <ImageUpload value={sections.properties_section?.coverImage || ""} onChange={(url) => updateField("properties_section", "coverImage", url)} label="Properties cover" previewClassName="h-32 w-full object-cover" />
                 </FieldGroup>
               </div>
             </SectionCard>
           </TabsContent>
 
-          {/* Properties CRUD */}
+          {/* ============ PROPERTIES CRUD ============ */}
           <TabsContent value="properties">
             <Card className="border-0 shadow-lg">
               <CardContent className="pt-6">
@@ -275,7 +359,7 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Reviews */}
+          {/* ============ REVIEWS ============ */}
           <TabsContent value="reviews">
             <SectionCard title="Đánh Giá Khách Hàng" icon={MessageSquare} onSave={() => saveSection("reviews")} saving={updateMutation.isPending}>
               <div className="space-y-6">
@@ -284,6 +368,9 @@ export default function Admin() {
                 </FieldGroup>
                 <FieldGroup label="Mô tả phụ">
                   <Textarea rows={2} value={sections.reviews?.subtitle || ""} onChange={(e) => updateField("reviews", "subtitle", e.target.value)} />
+                </FieldGroup>
+                <FieldGroup label="Ảnh bìa section">
+                  <ImageUpload value={sections.reviews?.coverImage || ""} onChange={(url) => updateField("reviews", "coverImage", url)} label="Reviews cover" previewClassName="h-32 w-full object-cover" />
                 </FieldGroup>
 
                 {/* Trust Badges */}
@@ -319,16 +406,19 @@ export default function Admin() {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <Input placeholder="Tên khách hàng" value={review.name || ""} onChange={(e) => updateReviewField(i, "name", e.target.value)} />
-                            <Input placeholder="Vị trí (VD: Quận 1, TP.HCM)" value={review.location || ""} onChange={(e) => updateReviewField(i, "location", e.target.value)} />
+                            <Input placeholder="Vị trí" value={review.location || ""} onChange={(e) => updateReviewField(i, "location", e.target.value)} />
                             <Input placeholder="Dự án liên quan" value={review.project || ""} onChange={(e) => updateReviewField(i, "project", e.target.value)} />
                             <div className="flex items-center gap-2">
                               <Star className="w-4 h-4 text-primary" />
                               <Input type="number" min={1} max={5} value={review.rating || 5} onChange={(e) => updateReviewField(i, "rating", parseInt(e.target.value) || 5)} className="w-20" />
-                              <span className="text-xs text-muted-foreground">sao</span>
                             </div>
                           </div>
-                          <Textarea placeholder="Nội dung đánh giá..." value={review.content || ""} onChange={(e) => updateReviewField(i, "content", e.target.value)} rows={2} />
-                          <ImageUpload value={review.avatar || ""} onChange={(url) => updateReviewField(i, "avatar", url)} label="Avatar" previewClassName="h-12 w-12 rounded-full object-cover" />
+                          <FieldGroup label="Nội dung đánh giá">
+                            <Textarea placeholder="Nội dung đánh giá..." value={review.content || ""} onChange={(e) => updateReviewField(i, "content", e.target.value)} rows={2} />
+                          </FieldGroup>
+                          <FieldGroup label="Avatar">
+                            <ImageUpload value={review.avatar || ""} onChange={(url) => updateReviewField(i, "avatar", url)} label="Avatar" previewClassName="h-12 w-12 rounded-full object-cover" />
+                          </FieldGroup>
                         </CardContent>
                       </Card>
                     ))}
@@ -338,7 +428,7 @@ export default function Admin() {
             </SectionCard>
           </TabsContent>
 
-          {/* Contact */}
+          {/* ============ CONTACT ============ */}
           <TabsContent value="contact">
             <SectionCard title="Thông Tin Liên Hệ" icon={Phone} onSave={() => saveSection("contact")} saving={updateMutation.isPending}>
               <div className="space-y-6">
@@ -358,7 +448,16 @@ export default function Admin() {
                   <FieldGroup label="Địa chỉ" className="sm:col-span-2">
                     <Input value={sections.contact?.address || ""} onChange={(e) => updateField("contact", "address", e.target.value)} />
                   </FieldGroup>
+                  <FieldGroup label="Giờ làm việc (ngày thường)">
+                    <Input value={sections.contact?.workHours || ""} onChange={(e) => updateField("contact", "workHours", e.target.value)} placeholder="Thứ 2 - Thứ 6: 8:00 - 18:00" />
+                  </FieldGroup>
+                  <FieldGroup label="Giờ làm việc (cuối tuần)">
+                    <Input value={sections.contact?.weekendHours || ""} onChange={(e) => updateField("contact", "weekendHours", e.target.value)} placeholder="Thứ 7 - CN: 8:00 - 17:00" />
+                  </FieldGroup>
                 </div>
+                <FieldGroup label="Ảnh bìa section liên hệ">
+                  <ImageUpload value={sections.contact?.coverImage || ""} onChange={(url) => updateField("contact", "coverImage", url)} label="Contact cover" previewClassName="h-32 w-full object-cover" />
+                </FieldGroup>
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -382,19 +481,109 @@ export default function Admin() {
             </SectionCard>
           </TabsContent>
 
-          {/* Footer */}
+          {/* ============ FOOTER ============ */}
           <TabsContent value="footer">
             <SectionCard title="Footer" icon={Type} onSave={() => saveSection("footer")} saving={updateMutation.isPending}>
-              <div className="space-y-4 sm:space-y-6">
-                <FieldGroup label="Tên công ty">
-                  <Input value={sections.footer?.companyName || ""} onChange={(e) => updateField("footer", "companyName", e.target.value)} />
-                </FieldGroup>
-                <FieldGroup label="Mô tả">
-                  <Textarea rows={2} value={sections.footer?.description || ""} onChange={(e) => updateField("footer", "description", e.target.value)} />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <FieldGroup label="Tên công ty">
+                    <Input value={sections.footer?.companyName || ""} onChange={(e) => updateField("footer", "companyName", e.target.value)} />
+                  </FieldGroup>
+                  <FieldGroup label="Giấy phép kinh doanh">
+                    <Input value={sections.footer?.businessLicense || ""} onChange={(e) => updateField("footer", "businessLicense", e.target.value)} placeholder="0123456789" />
+                  </FieldGroup>
+                </div>
+                <FieldGroup label="Mô tả công ty">
+                  <RichTextEditor value={sections.footer?.description || ""} onChange={(html) => updateField("footer", "description", html)} minHeight="100px" />
                 </FieldGroup>
                 <FieldGroup label="Copyright">
                   <Input value={sections.footer?.copyright || ""} onChange={(e) => updateField("footer", "copyright", e.target.value)} />
                 </FieldGroup>
+
+                {/* Social Media */}
+                <div>
+                  <label className="block text-sm font-semibold mb-3">Mạng xã hội</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { key: "facebook", icon: Facebook, label: "Facebook URL" },
+                      { key: "instagram", icon: Instagram, label: "Instagram URL" },
+                      { key: "youtube", icon: Youtube, label: "YouTube URL" },
+                      { key: "linkedin", icon: Linkedin, label: "LinkedIn URL" },
+                      { key: "tiktok", icon: Globe, label: "TikTok URL" },
+                      { key: "zalo", icon: Phone, label: "Zalo URL/SĐT" },
+                    ].map((social) => (
+                      <div key={social.key} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                        <social.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <Input
+                          placeholder={social.label}
+                          value={sections.footer?.social?.[social.key] || ""}
+                          onChange={(e) => updateNestedField("footer", "social", social.key, e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Services List */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold">Danh sách dịch vụ (footer)</label>
+                    <Button size="sm" variant="outline" onClick={() => addArrayItem("footer", "services", "")}>
+                      <Plus className="w-4 h-4 mr-1" /> Thêm
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(sections.footer?.services || []).map((item: string, i: number) => (
+                      <div key={i} className="flex gap-2">
+                        <Input value={item} onChange={(e) => updateArrayItem("footer", "services", i, e.target.value)} />
+                        <Button size="icon" variant="ghost" className="shrink-0 text-destructive" onClick={() => removeArrayItem("footer", "services", i)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Areas List */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold">Khu vực hoạt động</label>
+                    <Button size="sm" variant="outline" onClick={() => addArrayItem("footer", "areas", "")}>
+                      <Plus className="w-4 h-4 mr-1" /> Thêm
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(sections.footer?.areas || []).map((item: string, i: number) => (
+                      <div key={i} className="flex gap-2">
+                        <Input value={item} onChange={(e) => updateArrayItem("footer", "areas", i, e.target.value)} />
+                        <Button size="icon" variant="ghost" className="shrink-0 text-destructive" onClick={() => removeArrayItem("footer", "areas", i)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Legal Links */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold">Liên kết pháp lý</label>
+                    <Button size="sm" variant="outline" onClick={() => addArrayItem("footer", "legalLinks", { label: "", url: "#" })}>
+                      <Plus className="w-4 h-4 mr-1" /> Thêm
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(sections.footer?.legalLinks || []).map((item: any, i: number) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <Input placeholder="Tên" value={typeof item === "string" ? item : item.label || ""} onChange={(e) => updateArrayObjectField("footer", "legalLinks", i, "label", e.target.value)} />
+                        <Input placeholder="URL" value={typeof item === "string" ? "#" : item.url || ""} onChange={(e) => updateArrayObjectField("footer", "legalLinks", i, "url", e.target.value)} className="w-40" />
+                        <Button size="icon" variant="ghost" className="shrink-0 text-destructive" onClick={() => removeArrayItem("footer", "legalLinks", i)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </SectionCard>
           </TabsContent>
