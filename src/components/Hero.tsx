@@ -90,7 +90,12 @@ export default function Hero() {
           </p>
 
           {/* Search Form */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-luxury animate-scale-in" style={{ animationDelay: "0.3s" }}>
+          <motion.div
+            className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-luxury"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="relative">
                 <Input
