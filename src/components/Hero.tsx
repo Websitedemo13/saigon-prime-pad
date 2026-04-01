@@ -135,14 +135,19 @@ export default function Hero() {
                 Tìm Kiếm
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 animate-slide-in-right" style={{ animationDelay: "0.6s" }}>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
             <Button className="btn-primary text-lg px-8 py-4">Tư Vấn Miễn Phí</Button>
             <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary">Xem Dự Án</Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Scroll Indicator */}
