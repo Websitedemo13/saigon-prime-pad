@@ -62,7 +62,12 @@ export default function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 text-center">
-        <div className="max-w-4xl mx-auto animate-fade-in">
+        <motion.div
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             {content?.title ? (
               content.title
