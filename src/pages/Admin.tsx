@@ -193,6 +193,15 @@ export default function Admin() {
             ))}
           </TabsList>
 
+          {/* ============ PAGE BUILDER ============ */}
+          <TabsContent value="page_builder">
+            <Card className="border-0 shadow-lg">
+              <CardContent className="pt-6">
+                <PageBuilder />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* ============ HEADER ============ */}
           <TabsContent value="header">
             <SectionCard title="Header / Điều hướng" icon={Menu} onSave={() => saveSection("header")} saving={updateMutation.isPending}>
