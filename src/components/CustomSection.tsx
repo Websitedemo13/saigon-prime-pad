@@ -1,3 +1,5 @@
+import ScrollReveal from "@/components/ScrollReveal";
+
 interface CustomSectionProps {
   id: string;
   title: string;
@@ -23,15 +25,19 @@ export default function CustomSection({ id, title, content, backgroundImage, bac
       )}
       <div className="container mx-auto px-4 relative z-10">
         {title && (
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-8 text-foreground">
-            {title}
-          </h2>
+          <ScrollReveal>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-8 text-foreground">
+              {title}
+            </h2>
+          </ScrollReveal>
         )}
         {content && (
-          <div
-            className="prose prose-lg max-w-4xl mx-auto text-foreground/80"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
+          <ScrollReveal delay={0.15}>
+            <div
+              className="prose prose-lg max-w-4xl mx-auto text-foreground/80"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          </ScrollReveal>
         )}
       </div>
     </section>

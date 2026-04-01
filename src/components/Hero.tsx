@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, MapPin, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -61,7 +62,12 @@ export default function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 text-center">
-        <div className="max-w-4xl mx-auto animate-fade-in">
+        <motion.div
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             {content?.title ? (
               content.title
@@ -84,7 +90,12 @@ export default function Hero() {
           </p>
 
           {/* Search Form */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-luxury animate-scale-in" style={{ animationDelay: "0.3s" }}>
+          <motion.div
+            className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-luxury"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="relative">
                 <Input
@@ -124,14 +135,19 @@ export default function Hero() {
                 Tìm Kiếm
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 animate-slide-in-right" style={{ animationDelay: "0.6s" }}>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
             <Button className="btn-primary text-lg px-8 py-4">Tư Vấn Miễn Phí</Button>
             <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary">Xem Dự Án</Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Scroll Indicator */}

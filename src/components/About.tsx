@@ -1,6 +1,8 @@
 import { Building2, Users, Award, TrendingUp, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import ScrollReveal, { StaggerContainer, staggerItem } from "@/components/ScrollReveal";
+import { motion } from "framer-motion";
 
 const defaultStats = [
   { icon: Building2, number: "500+", label: "Dự án thành công" },
@@ -44,44 +46,50 @@ export default function About() {
   return (
     <section className="py-20 bg-gradient-to-br from-background to-accent/30">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">{title}</h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">{description}</p>
-        </div>
+        <ScrollReveal>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">{title}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">{description}</p>
+          </div>
+        </ScrollReveal>
 
         {videoUrl && (
-          <div className="max-w-4xl mx-auto mb-16 rounded-2xl overflow-hidden shadow-luxury">
-            {videoUrl.includes("youtube") ? (
-              <iframe
-                src={videoUrl.replace("watch?v=", "embed/")}
-                className="w-full aspect-video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video controls className="w-full aspect-video">
-                <source src={videoUrl} type="video/mp4" />
-              </video>
-            )}
-          </div>
+          <ScrollReveal delay={0.2}>
+            <div className="max-w-4xl mx-auto mb-16 rounded-2xl overflow-hidden shadow-luxury">
+              {videoUrl.includes("youtube") ? (
+                <iframe
+                  src={videoUrl.replace("watch?v=", "embed/")}
+                  className="w-full aspect-video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video controls className="w-full aspect-video">
+                  <source src={videoUrl} type="video/mp4" />
+                </video>
+              )}
+            </div>
+          </ScrollReveal>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
+        <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
           {stats.map((stat: any, index: number) => (
-            <Card key={index} className="card-hover border-0 bg-gradient-card animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-muted-foreground font-medium">{stat.label}</div>
-              </CardContent>
-            </Card>
+            <motion.div key={index} variants={staggerItem}>
+              <Card className="card-hover border-0 bg-gradient-card h-full">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <stat.icon className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                  <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
+                  <div className="text-muted-foreground font-medium">{stat.label}</div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </StaggerContainer>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="animate-fade-in">
+          <ScrollReveal direction="left">
             <h3 className="text-3xl font-bold mb-6 text-primary">{whyChooseTitle}</h3>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
               Chúng tôi không chỉ là một công ty môi giới, mà là đối tác đồng hành 
@@ -89,15 +97,17 @@ export default function About() {
             </p>
             <div className="grid gap-4">
               {achievements.slice(0, 3).map((achievement, index) => (
-                <div key={index} className="flex items-center gap-3 animate-slide-in-right" style={{ animationDelay: `${index * 0.2}s` }}>
-                  <CheckCircle className="w-6 h-6 text-primary flex-shrink-0" />
-                  <span className="text-lg">{achievement}</span>
-                </div>
+                <ScrollReveal key={index} direction="left" delay={index * 0.15}>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-6 h-6 text-primary flex-shrink-0" />
+                    <span className="text-lg">{achievement}</span>
+                  </div>
+                </ScrollReveal>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="animate-scale-in" style={{ animationDelay: "0.3s" }}>
+          <ScrollReveal direction="right" delay={0.2}>
             <Card className="border-0 bg-gradient-secondary shadow-luxury">
               <CardContent className="p-8">
                 <h4 className="text-2xl font-bold text-secondary-foreground mb-6">Cam kết của chúng tôi</h4>
@@ -117,7 +127,7 @@ export default function About() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>
