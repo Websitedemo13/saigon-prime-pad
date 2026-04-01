@@ -169,8 +169,9 @@ export default function Admin() {
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="header" className="space-y-4 sm:space-y-8">
-          <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-9 gap-1.5 sm:gap-2 h-auto bg-transparent">
+          <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-1.5 sm:gap-2 h-auto bg-transparent">
             {[
+              { value: "page_builder", icon: Layout, label: "Bố cục" },
               { value: "header", icon: Menu, label: "Header" },
               { value: "logo", icon: Settings, label: "Logo" },
               { value: "hero", icon: Layout, label: "Hero" },
