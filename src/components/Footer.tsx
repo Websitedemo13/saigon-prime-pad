@@ -5,10 +5,10 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 const defaultServices = ["Mua bán bất động sản", "Tư vấn đầu tư", "Định giá tài sản", "Hỗ trợ pháp lý", "Quản lý tài sản"];
 const defaultAreas = ["Quận 1", "Quận 2", "Quận 7", "Quận 9", "Bình Thạnh", "Thủ Đức", "Gò Vấp"];
 const defaultLegalLinks = [
-  { label: "Chính sách bảo mật", url: "#" },
-  { label: "Điều khoản sử dụng", url: "#" },
-  { label: "Quy định giao dịch", url: "#" },
-  { label: "Giải quyết khiếu nại", url: "#" },
+  { label: "Chính sách bảo mật", url: "#contact" },
+  { label: "Điều khoản sử dụng", url: "#about" },
+  { label: "Quy định giao dịch", url: "#properties" },
+  { label: "Giải quyết khiếu nại", url: "#contact" },
 ];
 
 const socialIcons: Record<string, any> = {
