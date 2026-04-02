@@ -119,7 +119,7 @@ export default function Footer() {
             <div className="flex items-center gap-4 text-sm text-secondary-foreground/60">
               <span>Giấy phép kinh doanh: {businessLicense}</span>
               <span>|</span>
-              <span>Cập nhật: {new Date().toLocaleDateString('vi-VN')}</span>
+              <span>Phát triển bởi <a href="https://quachthanhlong.com" target="_blank" rel="noopener noreferrer" className="text-primary-light hover:underline">quachthanhlong.com</a></span>
             </div>
           </div>
         </div>
