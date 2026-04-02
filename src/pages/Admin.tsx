@@ -18,6 +18,7 @@ import VideoUpload from "@/components/admin/VideoUpload";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
+import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
 
 type SectionData = Record<string, any>;
 
