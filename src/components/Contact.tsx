@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useCreateContactSubmission } from "@/hooks/useContactSubmissions";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const defaultServices = [
