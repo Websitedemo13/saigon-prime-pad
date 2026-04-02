@@ -5,10 +5,10 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 const defaultServices = ["Mua bán bất động sản", "Tư vấn đầu tư", "Định giá tài sản", "Hỗ trợ pháp lý", "Quản lý tài sản"];
 const defaultAreas = ["Quận 1", "Quận 2", "Quận 7", "Quận 9", "Bình Thạnh", "Thủ Đức", "Gò Vấp"];
 const defaultLegalLinks = [
-  { label: "Chính sách bảo mật", url: "#" },
-  { label: "Điều khoản sử dụng", url: "#" },
-  { label: "Quy định giao dịch", url: "#" },
-  { label: "Giải quyết khiếu nại", url: "#" },
+  { label: "Chính sách bảo mật", url: "#contact" },
+  { label: "Điều khoản sử dụng", url: "#about" },
+  { label: "Quy định giao dịch", url: "#properties" },
+  { label: "Giải quyết khiếu nại", url: "#contact" },
 ];
 
 const socialIcons: Record<string, any> = {
@@ -96,10 +96,17 @@ export default function Footer() {
                   );
                 })
               ) : (
-                [Facebook, Instagram, Youtube, Linkedin].map((Icon, i) => (
-                  <Button key={i} size="icon" variant="outline" className="border-primary-light text-primary-light hover:bg-primary-light hover:text-secondary">
-                    <Icon className="w-4 h-4" />
-                  </Button>
+                [
+                  { Icon: Facebook, url: "https://facebook.com" },
+                  { Icon: Instagram, url: "https://instagram.com" },
+                  { Icon: Youtube, url: "https://youtube.com" },
+                  { Icon: Linkedin, url: "https://linkedin.com" },
+                ].map(({ Icon, url }, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <Button size="icon" variant="outline" className="border-primary-light text-primary-light hover:bg-primary-light hover:text-secondary">
+                      <Icon className="w-4 h-4" />
+                    </Button>
+                  </a>
                 ))
               )}
             </div>
@@ -119,7 +126,7 @@ export default function Footer() {
             <div className="flex items-center gap-4 text-sm text-secondary-foreground/60">
               <span>Giấy phép kinh doanh: {businessLicense}</span>
               <span>|</span>
-              <span>Cập nhật: {new Date().toLocaleDateString('vi-VN')}</span>
+              <span>Phát triển bởi <a href="https://quachthanhlong.com" target="_blank" rel="noopener noreferrer" className="text-primary-light hover:underline">quachthanhlong.com</a></span>
             </div>
           </div>
         </div>

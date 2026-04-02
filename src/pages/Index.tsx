@@ -22,7 +22,9 @@ const BUILTIN_COMPONENTS: Record<string, React.FC> = {
 const SECTION_IDS: Record<string, string> = {
   hero: "hero",
   about: "about",
+  properties: "properties",
   map: "map",
+  reviews: "reviews",
   contact: "contact",
 };
 

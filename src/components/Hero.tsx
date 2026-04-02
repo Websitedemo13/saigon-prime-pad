@@ -144,8 +144,8 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            <Button className="btn-primary text-lg px-8 py-4">Tư Vấn Miễn Phí</Button>
-            <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary">Xem Dự Án</Button>
+            <Button className="btn-primary text-lg px-8 py-4" onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}>Tư Vấn Miễn Phí</Button>
+            <Button className="btn-outline text-lg px-8 py-4 text-white border-white hover:text-primary" onClick={() => document.querySelector('#properties')?.scrollIntoView({ behavior: 'smooth' })}>Xem Dự Án</Button>
           </motion.div>
         </motion.div>
       </div>
