@@ -18,6 +18,7 @@ import VideoUpload from "@/components/admin/VideoUpload";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
+import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
 
 type SectionData = Record<string, any>;
 
@@ -169,9 +170,10 @@ export default function Admin() {
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="page_builder" className="space-y-4 sm:space-y-8">
-          <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-1.5 sm:gap-2 h-auto bg-transparent">
+          <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-11 gap-1.5 sm:gap-2 h-auto bg-transparent">
             {[
               { value: "page_builder", icon: Layout, label: "Bố cục" },
+              { value: "submissions", icon: MessageSquare, label: "Form LH" },
               { value: "header", icon: Menu, label: "Header" },
               { value: "logo", icon: Settings, label: "Logo" },
               { value: "hero", icon: Layout, label: "Hero" },
@@ -198,6 +200,23 @@ export default function Admin() {
             <Card className="border-0 shadow-lg">
               <CardContent className="pt-6">
                 <PageBuilder />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ============ CONTACT SUBMISSIONS ============ */}
+          <TabsContent value="submissions">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b border-border pb-4">
+                <CardTitle className="flex items-center gap-3 text-base sm:text-lg">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  </div>
+                  Quản Lý Form Liên Hệ
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ContactSubmissionsAdmin />
               </CardContent>
             </Card>
           </TabsContent>

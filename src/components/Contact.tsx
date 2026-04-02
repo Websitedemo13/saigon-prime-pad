@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useCreateContactSubmission } from "@/hooks/useContactSubmissions";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const defaultServices = [
@@ -25,15 +26,26 @@ export default function Contact() {
   const content = contactContent?.content as Record<string, any> | null;
   const about = aboutContent?.content as Record<string, any> | null;
 
+  const createSubmission = useCreateContactSubmission();
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", service: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({ title: "Gửi thành công!", description: "Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ." });
-    setFormData({ name: "", phone: "", email: "", service: "", message: "" });
+    try {
+      await createSubmission.mutateAsync({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        service: formData.service,
+        message: formData.message.trim(),
+      });
+      toast({ title: "Gửi thành công! ✅", description: "Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ." });
+      setFormData({ name: "", phone: "", email: "", service: "", message: "" });
+    } catch {
+      toast({ title: "Lỗi!", description: "Không thể gửi. Vui lòng thử lại.", variant: "destructive" });
+    }
     setIsSubmitting(false);
   };
 
