@@ -96,10 +96,17 @@ export default function Footer() {
                   );
                 })
               ) : (
-                [Facebook, Instagram, Youtube, Linkedin].map((Icon, i) => (
-                  <Button key={i} size="icon" variant="outline" className="border-primary-light text-primary-light hover:bg-primary-light hover:text-secondary">
-                    <Icon className="w-4 h-4" />
-                  </Button>
+                [
+                  { Icon: Facebook, url: "https://facebook.com" },
+                  { Icon: Instagram, url: "https://instagram.com" },
+                  { Icon: Youtube, url: "https://youtube.com" },
+                  { Icon: Linkedin, url: "https://linkedin.com" },
+                ].map(({ Icon, url }, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <Button size="icon" variant="outline" className="border-primary-light text-primary-light hover:bg-primary-light hover:text-secondary">
+                      <Icon className="w-4 h-4" />
+                    </Button>
+                  </a>
                 ))
               )}
             </div>
