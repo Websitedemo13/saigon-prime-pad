@@ -204,6 +204,23 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* ============ CONTACT SUBMISSIONS ============ */}
+          <TabsContent value="submissions">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b border-border pb-4">
+                <CardTitle className="flex items-center gap-3 text-base sm:text-lg">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  </div>
+                  Quản Lý Form Liên Hệ
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ContactSubmissionsAdmin />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* ============ HEADER ============ */}
           <TabsContent value="header">
             <SectionCard title="Header / Điều hướng" icon={Menu} onSave={() => saveSection("header")} saving={updateMutation.isPending}>
