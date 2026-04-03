@@ -292,6 +292,14 @@ export default function PropertyDetail() {
                   </Card>
                 </ScrollReveal>
               )}
+
+              {/* Detail Sections - Chi tiết không gian */}
+              {property.detail_sections && property.detail_sections.length > 0 && (
+                <PropertyDetailSections
+                  sections={property.detail_sections}
+                  onOpenLightbox={openLightbox}
+                />
+              )}
             </div>
 
             {/* Sidebar */}
