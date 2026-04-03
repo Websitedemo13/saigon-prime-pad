@@ -73,7 +73,7 @@ export function useProperties() {
         .eq("is_active", true)
         .order("sort_order");
       if (error) throw error;
-      return data as DbProperty[];
+      return (data as unknown as DbProperty[]);
     },
   });
 }
