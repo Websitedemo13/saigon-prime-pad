@@ -424,7 +424,7 @@ export default function PropertyDetail() {
 
       {/* Lightbox */}
       <AnimatePresence>
-        {lightboxOpen && allImages.length > 0 && (
+        {lightboxOpen && lightboxImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
