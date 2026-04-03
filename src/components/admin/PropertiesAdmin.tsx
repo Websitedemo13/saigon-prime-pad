@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAllProperties, useCreateProperty, useUpdateProperty, useDeleteProperty, useReorderProperties, DbProperty } from "@/hooks/useProperties";
 import ImageUpload from "@/components/admin/ImageUpload";
+import DetailSectionsEditor from "@/components/admin/DetailSectionsEditor";
 import {
   DndContext,
   closestCenter,
