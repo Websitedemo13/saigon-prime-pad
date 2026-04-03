@@ -31,8 +31,17 @@ export interface DbProperty {
   is_active: boolean;
   latitude: number | null;
   longitude: number | null;
+  detail_sections: DetailSection[];
   created_at: string;
   updated_at: string;
+}
+
+export interface DetailSection {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];
+  icon: string;
 }
 
 export function useReorderProperties() {
@@ -64,7 +73,7 @@ export function useProperties() {
         .eq("is_active", true)
         .order("sort_order");
       if (error) throw error;
-      return data as DbProperty[];
+      return (data as unknown as DbProperty[]);
     },
   });
 }
@@ -78,7 +87,7 @@ export function useAllProperties() {
         .select("*")
         .order("sort_order");
       if (error) throw error;
-      return data as DbProperty[];
+      return (data as unknown as DbProperty[]);
     },
   });
 }
@@ -93,7 +102,7 @@ export function usePropertyBySlug(slug: string) {
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
-      return data as DbProperty | null;
+      return (data as unknown as DbProperty | null);
     },
     enabled: !!slug,
   });

@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import ScrollReveal, { StaggerContainer, staggerItem } from "@/components/ScrollReveal";
+import PropertyDetailSections from "@/components/PropertyDetailSections";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PropertyDetail() {
@@ -22,6 +23,7 @@ export default function PropertyDetail() {
   const { data: allProperties } = useProperties();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 
   if (isLoading) {
     return (
@@ -54,9 +56,14 @@ export default function PropertyDetail() {
   const allImages = [property.image, ...property.gallery].filter(Boolean);
   const otherProperties = allProperties?.filter((p) => p.id !== property.id) || [];
 
-  const openLightbox = (index: number) => {
+  const openLightbox = (images: string[], index: number) => {
+    setLightboxImages(images);
     setLightboxIndex(index);
     setLightboxOpen(true);
+  };
+
+  const openMainLightbox = (index: number) => {
+    openLightbox(allImages, index);
   };
 
   return (
@@ -112,7 +119,7 @@ export default function PropertyDetail() {
         </motion.div>
 
         {/* Gallery Thumbnails Overlay */}
-        {allImages.length > 1 && (
+        {lightboxImages.length > 1 && (
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -122,19 +129,19 @@ export default function PropertyDetail() {
             {allImages.slice(0, 4).map((img, i) => (
               <button
                 key={i}
-                onClick={() => openLightbox(i)}
+                onClick={() => openMainLightbox(i)}
                 className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-white/50 hover:border-white transition-all hover:scale-105 shadow-lg"
               >
                 <img src={img} alt="" className="w-full h-full object-cover" />
-                {i === 3 && allImages.length > 4 && (
+                {i === 3 && lightboxImages.length > 4 && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold">
-                    +{allImages.length - 4}
+                    +{lightboxImages.length - 4}
                   </div>
                 )}
               </button>
             ))}
             <button
-              onClick={() => openLightbox(0)}
+              onClick={() => openMainLightbox(0)}
               className="w-20 h-20 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 transition-all flex flex-col items-center justify-center text-white"
             >
               <Maximize2 className="w-5 h-5 mb-1" />
@@ -266,7 +273,7 @@ export default function PropertyDetail() {
                             key={i}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => openLightbox(i + 1)}
+                            onClick={() => openMainLightbox(i + 1)}
                             className="relative group rounded-xl overflow-hidden aspect-[4/3]"
                           >
                             <img
@@ -284,6 +291,14 @@ export default function PropertyDetail() {
                     </CardContent>
                   </Card>
                 </ScrollReveal>
+              )}
+
+              {/* Detail Sections - Chi tiết không gian */}
+              {property.detail_sections && property.detail_sections.length > 0 && (
+                <PropertyDetailSections
+                  sections={property.detail_sections}
+                  onOpenLightbox={openLightbox}
+                />
               )}
             </div>
 
@@ -409,7 +424,7 @@ export default function PropertyDetail() {
 
       {/* Lightbox */}
       <AnimatePresence>
-        {lightboxOpen && allImages.length > 0 && (
+        {lightboxOpen && lightboxImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -428,7 +443,7 @@ export default function PropertyDetail() {
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                setLightboxIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+                setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
               }}
             >
               <ChevronLeft className="w-6 h-6" />
@@ -439,7 +454,7 @@ export default function PropertyDetail() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              src={allImages[lightboxIndex]}
+              src={lightboxImages[lightboxIndex]}
               alt=""
               className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
@@ -449,14 +464,14 @@ export default function PropertyDetail() {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                setLightboxIndex((prev) => (prev + 1) % allImages.length);
+                setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
               }}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
-              {lightboxIndex + 1} / {allImages.length}
+              {lightboxIndex + 1} / {lightboxImages.length}
             </div>
           </motion.div>
         )}

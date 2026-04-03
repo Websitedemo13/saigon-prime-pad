@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAllProperties, useCreateProperty, useUpdateProperty, useDeleteProperty, useReorderProperties, DbProperty } from "@/hooks/useProperties";
 import ImageUpload from "@/components/admin/ImageUpload";
+import DetailSectionsEditor from "@/components/admin/DetailSectionsEditor";
 import {
   DndContext,
   closestCenter,
@@ -41,7 +42,7 @@ const emptyProperty: Partial<DbProperty> = {
   type: "", status: "", roi: "", image: "", gallery: [], features: [],
   description: "", amenities: [], developer: "", year_built: "", floors: 0,
   parking: "", nearby_places: [], sort_order: 0, is_active: true,
-  latitude: null, longitude: null,
+  latitude: null, longitude: null, detail_sections: [],
 };
 
 function SortablePropertyItem({
@@ -386,7 +387,11 @@ export default function PropertiesAdmin() {
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Detail Sections */}
+            <DetailSectionsEditor
+              sections={(form.detail_sections as any) || []}
+              onChange={(sections) => updateFormField("detail_sections", sections)}
+            />
             <div className="flex gap-3 pt-2">
               <Button onClick={handleSave} disabled={isSaving} className="btn-primary">
                 <Save className="w-4 h-4 mr-2" /> {isSaving ? "Đang lưu..." : "Lưu"}
