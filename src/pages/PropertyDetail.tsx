@@ -56,9 +56,14 @@ export default function PropertyDetail() {
   const allImages = [property.image, ...property.gallery].filter(Boolean);
   const otherProperties = allProperties?.filter((p) => p.id !== property.id) || [];
 
-  const openLightbox = (index: number) => {
+  const openLightbox = (images: string[], index: number) => {
+    setLightboxImages(images);
     setLightboxIndex(index);
     setLightboxOpen(true);
+  };
+
+  const openMainLightbox = (index: number) => {
+    openLightbox(allImages, index);
   };
 
   return (
