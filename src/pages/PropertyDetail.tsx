@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import ScrollReveal, { StaggerContainer, staggerItem } from "@/components/ScrollReveal";
+import PropertyDetailSections from "@/components/PropertyDetailSections";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PropertyDetail() {
@@ -22,6 +23,7 @@ export default function PropertyDetail() {
   const { data: allProperties } = useProperties();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 
   if (isLoading) {
     return (
