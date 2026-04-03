@@ -387,7 +387,11 @@ export default function PropertiesAdmin() {
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Detail Sections */}
+            <DetailSectionsEditor
+              sections={(form.detail_sections as any) || []}
+              onChange={(sections) => updateFormField("detail_sections", sections)}
+            />
             <div className="flex gap-3 pt-2">
               <Button onClick={handleSave} disabled={isSaving} className="btn-primary">
                 <Save className="w-4 h-4 mr-2" /> {isSaving ? "Đang lưu..." : "Lưu"}
