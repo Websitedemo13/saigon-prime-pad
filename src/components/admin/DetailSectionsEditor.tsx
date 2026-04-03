@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Image as ImageIcon, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { DetailSection } from "@/hooks/useProperties";
 
 const ICON_OPTIONS = [
@@ -34,6 +36,8 @@ interface Props {
 
 export default function DetailSectionsEditor({ sections, onChange }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const addSection = () => {
     const newSection: DetailSection = {
@@ -69,6 +73,57 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
     onChange(arr);
   };
 
+  const removeImage = (sectionId: string, imgIndex: number) => {
+    const section = sections.find((s) => s.id === sectionId);
+    if (!section) return;
+    const newImages = section.images.filter((_, i) => i !== imgIndex);
+    updateSection(sectionId, "images", newImages);
+  };
+
+  const handleUploadImages = async (sectionId: string, files: FileList) => {
+    const section = sections.find((s) => s.id === sectionId);
+    if (!section) return;
+
+    const maxSize = 5 * 1024 * 1024;
+    const validFiles = Array.from(files).filter((f) => {
+      if (f.size > maxSize) {
+        toast({ title: `${f.name} quá lớn`, description: "Tối đa 5MB/ảnh", variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setUploadingFor(sectionId);
+    const newUrls: string[] = [];
+
+    try {
+      for (const file of validFiles) {
+        const ext = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
+        const filePath = `uploads/${fileName}`;
+
+        const { error } = await supabase.storage
+          .from("site-media")
+          .upload(filePath, file, { upsert: true });
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+          .from("site-media")
+          .getPublicUrl(filePath);
+        newUrls.push(urlData.publicUrl);
+      }
+
+      updateSection(sectionId, "images", [...section.images, ...newUrls]);
+      toast({ title: `Đã tải ${newUrls.length} ảnh thành công!` });
+    } catch (err: any) {
+      toast({ title: "Lỗi tải ảnh", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -92,10 +147,10 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
       {sections.map((section, index) => {
         const isExpanded = expandedId === section.id;
         const iconLabel = ICON_OPTIONS.find((o) => o.value === section.icon)?.label || "📷 Khác";
+        const isUploading = uploadingFor === section.id;
 
         return (
           <Card key={section.id} className="border shadow-sm overflow-hidden">
-            {/* Header */}
             <div className="flex items-center gap-2 p-3 bg-muted/30">
               <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
               <button
@@ -124,7 +179,6 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
               </div>
             </div>
 
-            {/* Expanded Content */}
             {isExpanded && (
               <div className="p-4 space-y-3 border-t">
                 <div className="grid grid-cols-2 gap-3">
@@ -161,22 +215,68 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
                     onChange={(e) => updateSection(section.id, "description", e.target.value)}
                   />
                 </div>
+
+                {/* Image Upload Area */}
                 <div>
-                  <label className="block text-xs text-muted-foreground mb-1">Ảnh (mỗi dòng 1 URL)</label>
-                  <Textarea
-                    rows={4}
-                    placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-                    value={section.images.join("\n")}
-                    onChange={(e) =>
-                      updateSection(section.id, "images", e.target.value.split("\n").filter(Boolean))
-                    }
-                  />
+                  <label className="block text-xs text-muted-foreground mb-2">Ảnh phân khu</label>
+                  <div
+                    className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
+                      isUploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/30"
+                    }`}
+                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files.length > 0) {
+                        handleUploadImages(section.id, e.dataTransfer.files);
+                      }
+                    }}
+                  >
+                    {isUploading ? (
+                      <div className="flex items-center justify-center gap-2 py-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-sm text-primary font-medium">Đang tải ảnh lên...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Kéo thả ảnh vào đây hoặc</p>
+                        <label className="inline-block mt-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleUploadImages(section.id, e.target.files);
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                          <span className="text-sm font-medium text-primary cursor-pointer hover:underline">
+                            chọn từ máy tính
+                          </span>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-1">Hỗ trợ nhiều ảnh, tối đa 5MB/ảnh</p>
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                {/* Image Grid */}
                 {section.images.length > 0 && (
                   <div className="grid grid-cols-4 gap-2">
                     {section.images.map((img, i) => (
-                      <div key={i} className="aspect-square rounded-lg overflow-hidden border">
+                      <div key={i} className="group relative aspect-square rounded-lg overflow-hidden border">
                         <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(section.id, i)}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
                     ))}
                   </div>
