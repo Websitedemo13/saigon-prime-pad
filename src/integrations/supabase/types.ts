@@ -62,6 +62,7 @@ export type Database = {
           bedrooms: number
           created_at: string
           description: string
+          detail_sections: Json
           developer: string
           district: string
           features: string[]
@@ -95,6 +96,7 @@ export type Database = {
           bedrooms?: number
           created_at?: string
           description?: string
+          detail_sections?: Json
           developer?: string
           district?: string
           features?: string[]
@@ -128,6 +130,7 @@ export type Database = {
           bedrooms?: number
           created_at?: string
           description?: string
+          detail_sections?: Json
           developer?: string
           district?: string
           features?: string[]
