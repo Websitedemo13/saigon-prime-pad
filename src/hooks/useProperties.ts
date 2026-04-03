@@ -102,7 +102,7 @@ export function usePropertyBySlug(slug: string) {
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
-      return data as DbProperty | null;
+      return (data as unknown as DbProperty | null);
     },
     enabled: !!slug,
   });
