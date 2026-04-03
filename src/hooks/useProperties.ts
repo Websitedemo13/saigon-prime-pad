@@ -31,8 +31,17 @@ export interface DbProperty {
   is_active: boolean;
   latitude: number | null;
   longitude: number | null;
+  detail_sections: DetailSection[];
   created_at: string;
   updated_at: string;
+}
+
+export interface DetailSection {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];
+  icon: string;
 }
 
 export function useReorderProperties() {
