@@ -119,7 +119,7 @@ export default function PropertyDetail() {
         </motion.div>
 
         {/* Gallery Thumbnails Overlay */}
-        {allImages.length > 1 && (
+        {lightboxImages.length > 1 && (
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -133,9 +133,9 @@ export default function PropertyDetail() {
                 className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-white/50 hover:border-white transition-all hover:scale-105 shadow-lg"
               >
                 <img src={img} alt="" className="w-full h-full object-cover" />
-                {i === 3 && allImages.length > 4 && (
+                {i === 3 && lightboxImages.length > 4 && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold">
-                    +{allImages.length - 4}
+                    +{lightboxImages.length - 4}
                   </div>
                 )}
               </button>
@@ -443,7 +443,7 @@ export default function PropertyDetail() {
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                setLightboxIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+                setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
               }}
             >
               <ChevronLeft className="w-6 h-6" />
@@ -454,7 +454,7 @@ export default function PropertyDetail() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              src={allImages[lightboxIndex]}
+              src={lightboxImages[lightboxIndex]}
               alt=""
               className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
@@ -464,14 +464,14 @@ export default function PropertyDetail() {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                setLightboxIndex((prev) => (prev + 1) % allImages.length);
+                setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
               }}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
-              {lightboxIndex + 1} / {allImages.length}
+              {lightboxIndex + 1} / {lightboxImages.length}
             </div>
           </motion.div>
         )}
