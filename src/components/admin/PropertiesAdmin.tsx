@@ -42,7 +42,7 @@ const emptyProperty: Partial<DbProperty> = {
   type: "", status: "", roi: "", image: "", gallery: [], features: [],
   description: "", amenities: [], developer: "", year_built: "", floors: 0,
   parking: "", nearby_places: [], sort_order: 0, is_active: true,
-  latitude: null, longitude: null,
+  latitude: null, longitude: null, detail_sections: [],
 };
 
 function SortablePropertyItem({
