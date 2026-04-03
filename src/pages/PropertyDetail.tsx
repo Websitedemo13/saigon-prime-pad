@@ -129,7 +129,7 @@ export default function PropertyDetail() {
             {allImages.slice(0, 4).map((img, i) => (
               <button
                 key={i}
-                onClick={() => openLightbox(i)}
+                onClick={() => openMainLightbox(i)}
                 className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-white/50 hover:border-white transition-all hover:scale-105 shadow-lg"
               >
                 <img src={img} alt="" className="w-full h-full object-cover" />
@@ -141,7 +141,7 @@ export default function PropertyDetail() {
               </button>
             ))}
             <button
-              onClick={() => openLightbox(0)}
+              onClick={() => openMainLightbox(0)}
               className="w-20 h-20 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 transition-all flex flex-col items-center justify-center text-white"
             >
               <Maximize2 className="w-5 h-5 mb-1" />
@@ -273,7 +273,7 @@ export default function PropertyDetail() {
                             key={i}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => openLightbox(i + 1)}
+                            onClick={() => openMainLightbox(i + 1)}
                             className="relative group rounded-xl overflow-hidden aspect-[4/3]"
                           >
                             <img
