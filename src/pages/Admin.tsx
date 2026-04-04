@@ -19,6 +19,7 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
 import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
+import { AdminThemeSwitcher, useAdminTheme } from "@/components/admin/AdminThemeSwitcher";
 
 type SectionData = Record<string, any>;
 
