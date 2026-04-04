@@ -164,6 +164,7 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <AdminThemeSwitcher />
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 animate-pulse" />
             <span className="text-xs sm:text-sm text-white/80 hidden sm:inline">Đang kết nối</span>
           </div>
