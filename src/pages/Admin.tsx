@@ -493,6 +493,16 @@ export default function Admin() {
                   <ImageUpload value={sections.contact?.coverImage || ""} onChange={(url) => updateField("contact", "coverImage", url)} label="Contact cover" previewClassName="h-32 w-full object-cover" />
                 </FieldGroup>
 
+                <Separator className="my-6" />
+
+                {/* Form Fields Editor */}
+                <ContactFormFieldsEditor
+                  fields={sections.contact?.formFields || []}
+                  onChange={(fields) => updateField("contact", "formFields", fields)}
+                />
+
+                <Separator className="my-6" />
+
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-semibold">Danh sách dịch vụ (form liên hệ)</label>
