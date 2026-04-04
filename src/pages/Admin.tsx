@@ -20,6 +20,7 @@ import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
 import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
 import { AdminThemeSwitcher, useAdminTheme } from "@/components/admin/AdminThemeSwitcher";
+import ContactFormFieldsEditor from "@/components/admin/ContactFormFieldsEditor";
 
 type SectionData = Record<string, any>;
 
