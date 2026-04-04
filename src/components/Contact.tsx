@@ -247,9 +247,9 @@ export default function Contact() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                        className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6"
+                        className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
                       >
-                        <CheckCircle className="w-10 h-10 text-green-500" />
+                        <CheckCircle className="w-10 h-10 text-primary" />
                       </motion.div>
                       <h3 className="text-2xl font-bold mb-3">Gửi Thành Công! 🎉</h3>
                       <p className="text-muted-foreground max-w-sm">
