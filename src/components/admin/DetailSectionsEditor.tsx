@@ -15,6 +15,23 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { DetailSection } from "@/hooks/useProperties";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const ICON_OPTIONS = [
   { value: "bed", label: "🛏️ Phòng ngủ" },
@@ -29,6 +46,41 @@ const ICON_OPTIONS = [
   { value: "images", label: "📷 Khác" },
 ];
 
+function SortableImage({ id, url, onRemove }: { id: string; url: string; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary/30 transition-colors">
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing z-10"
+      />
+      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+      {isDragging && (
+        <div className="absolute inset-0 bg-primary/20 ring-2 ring-primary rounded-lg" />
+      )}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <GripVertical className="w-3 h-3 text-white mx-auto" />
+      </div>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-20"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
 interface Props {
   sections: DetailSection[];
   onChange: (sections: DetailSection[]) => void;
@@ -38,6 +90,11 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const addSection = () => {
     const newSection: DetailSection = {
@@ -78,6 +135,22 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
     if (!section) return;
     const newImages = section.images.filter((_, i) => i !== imgIndex);
     updateSection(sectionId, "images", newImages);
+  };
+
+  const handleImageDragEnd = (sectionId: string, event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const section = sections.find((s) => s.id === sectionId);
+    if (!section) return;
+
+    const oldIndex = section.images.findIndex((_, i) => `img-${i}` === active.id);
+    const newIndex = section.images.findIndex((_, i) => `img-${i}` === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newImages = arrayMove(section.images, oldIndex, newIndex);
+      updateSection(sectionId, "images", newImages);
+    }
   };
 
   const handleUploadImages = async (sectionId: string, files: FileList) => {
@@ -218,7 +291,7 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
 
                 {/* Image Upload Area */}
                 <div>
-                  <label className="block text-xs text-muted-foreground mb-2">Ảnh phân khu</label>
+                  <label className="block text-xs text-muted-foreground mb-2">Ảnh phân khu (kéo thả để sắp xếp)</label>
                   <div
                     className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
                       isUploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-muted/30"
@@ -264,22 +337,29 @@ export default function DetailSectionsEditor({ sections, onChange }: Props) {
                   </div>
                 </div>
 
-                {/* Image Grid */}
+                {/* Image Grid with Drag & Drop */}
                 {section.images.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {section.images.map((img, i) => (
-                      <div key={i} className="group relative aspect-square rounded-lg overflow-hidden border">
-                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(section.id, i)}
-                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={(event) => handleImageDragEnd(section.id, event)}
+                  >
+                    <SortableContext
+                      items={section.images.map((_, i) => `img-${i}`)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-4 gap-2">
+                        {section.images.map((img, i) => (
+                          <SortableImage
+                            key={`img-${i}`}
+                            id={`img-${i}`}
+                            url={img}
+                            onRemove={() => removeImage(section.id, i)}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
               </div>
             )}
