@@ -19,6 +19,7 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
 import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
+import { AdminThemeSwitcher, useAdminTheme } from "@/components/admin/AdminThemeSwitcher";
 
 type SectionData = Record<string, any>;
 
@@ -27,6 +28,7 @@ export default function Admin() {
   const { data: allContent, isLoading } = useAllSiteContent();
   const updateMutation = useUpdateSiteContent();
   const [sections, setSections] = useState<Record<string, SectionData>>({});
+  useAdminTheme();
 
   useEffect(() => {
     if (allContent) {
@@ -162,6 +164,7 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <AdminThemeSwitcher />
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 animate-pulse" />
             <span className="text-xs sm:text-sm text-white/80 hidden sm:inline">Đang kết nối</span>
           </div>
