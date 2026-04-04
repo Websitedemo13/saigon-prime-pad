@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAllSiteContent, useUpdateSiteContent } from "@/hooks/useSiteContent";
 import { Json } from "@/integrations/supabase/types";
@@ -20,6 +21,7 @@ import PropertiesAdmin from "@/components/admin/PropertiesAdmin";
 import PageBuilder from "@/components/admin/PageBuilder";
 import ContactSubmissionsAdmin from "@/components/admin/ContactSubmissionsAdmin";
 import { AdminThemeSwitcher, useAdminTheme } from "@/components/admin/AdminThemeSwitcher";
+import ContactFormFieldsEditor from "@/components/admin/ContactFormFieldsEditor";
 
 type SectionData = Record<string, any>;
 
@@ -491,6 +493,16 @@ export default function Admin() {
                 <FieldGroup label="Ảnh bìa section liên hệ">
                   <ImageUpload value={sections.contact?.coverImage || ""} onChange={(url) => updateField("contact", "coverImage", url)} label="Contact cover" previewClassName="h-32 w-full object-cover" />
                 </FieldGroup>
+
+                <Separator className="my-6" />
+
+                {/* Form Fields Editor */}
+                <ContactFormFieldsEditor
+                  fields={sections.contact?.formFields || []}
+                  onChange={(fields) => updateField("contact", "formFields", fields)}
+                />
+
+                <Separator className="my-6" />
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
