@@ -28,6 +28,7 @@ export default function Admin() {
   const { data: allContent, isLoading } = useAllSiteContent();
   const updateMutation = useUpdateSiteContent();
   const [sections, setSections] = useState<Record<string, SectionData>>({});
+  useAdminTheme();
 
   useEffect(() => {
     if (allContent) {
